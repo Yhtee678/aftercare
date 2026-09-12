@@ -28,5 +28,23 @@ definitions from `@/db/schema` and the server-only database connection from `@/d
 - `npm run db:migrate` applies migrations to `DATABASE_URL`; run only when deployment
   is explicitly intended, after reviewing the SQL and target environment.
 
-The initial M2B migration is generated only and has not been applied to Supabase.
 The existing config loads `.env.local` quietly; never commit or print credentials.
+
+## Development seed and student read
+
+Apply the reviewed M2B migration before seeding a new development database.
+`npm run db:seed` uses the existing connection to insert one fictional school,
+2026 classes 1H and 2M, and six students whose names start with `Test` (five active,
+one inactive). Parent details are omitted. Fixed UUIDs and `ON CONFLICT (id) DO
+NOTHING` make reruns insert-only and preserve existing values. All inserts run
+in one transaction; other uniqueness conflicts fail rather than overwrite data.
+Do not change the seed UUIDs between runs. The seed refuses `NODE_ENV=production`.
+
+The script loads `.env.local` before importing the shared Node-only connection
+in `db/connection.ts` and closes its pool on completion. The application's
+`db/index.ts` retains its `server-only` guard and re-exports the same connection.
+
+`/students` performs one request-time joined query selecting only student ID,
+name, status, school name, grade, and class name. It shows active and inactive
+students, with no pagination for this initial small dataset. There is no
+authentication yet; this stage is intended for fictional development data.
