@@ -14,6 +14,6 @@ if (!databaseUrl?.trim()) {
 export default defineConfig({
   dialect: "postgresql",
   out: "./db/migrations",
-  // Add schema paths when domain schemas are implemented.
+  schema: "./db/schema/index.ts",
   dbCredentials: { url: databaseUrl },
 });
