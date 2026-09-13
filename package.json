@@ -13,7 +13,9 @@
     "db:seed": "tsx db/seed.ts",
     "test:students": "tsx --test tests/student-validation.test.ts",
     "test:schools": "tsx --test tests/school-validation.test.ts",
-    "test:classes": "tsx --test tests/school-class-validation.test.ts"
+    "test:classes": "tsx --test tests/school-class-validation.test.ts",
+    "test:homework": "tsx --test tests/homework-validation.test.ts",
+    "test:homework:integration": "node --import tsx tests/homework.integration.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
