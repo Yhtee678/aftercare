@@ -73,4 +73,26 @@ checks at this milestone, as explicitly scoped.
 Run `npm run test:students` for validation tests. To exercise the actual action,
 build and start the application on port 3100, then run
 `node --import tsx tests/student-creation.integration.ts`. This explicit development
-test leaves one fictional `Test M3A Creation ...` student and deletes no data.
+test creates one fictional `Test M3A Creation ...` student, then edits it to
+`Test M3B Edited ...`, and deletes no data.
+
+## Student detail and edit
+
+Student cards link to `/students/[id]`. One joined, ID-filtered query reads the
+student and current class/school context, including inactive records. Invalid
+UUIDs and absent students use Next.js `notFound()`; database failures show a safe
+retry state. The existing Students loading boundary covers these routes.
+
+`/students/[id]/edit` shares the add form and field validation. Only name, current
+class, optional parent name/phone and notes can change; status is preserved.
+Unavailable current classes require selecting an active class in an active school.
+The action validates the payload and delegates to a transaction that locks the
+student row, rechecks class/school availability under shared locks, and updates by
+primary key. Changed values set `updated_at` explicitly; identical retries do
+nothing, including leaving that timestamp unchanged. The form disables submission
+while saving. Separate forms use last-write-wins; there is no stale-edit detection.
+
+Success revalidates the list, detail and edit paths, then the client replaces the
+edit route with the detail route and an `updated=1` success indicator. This query
+parameter is a UI notice, not an audit record. Class edits only affect the current
+relationship; future daily records must snapshot historical class context.

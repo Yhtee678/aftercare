@@ -18,6 +18,8 @@ export default async function Page() {
     return <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Add Student</h1>
       <p role="alert" className="text-sm text-slate-600">Unable to load school classes. Please try again.</p>
+      {/* A full reload retries the failed database read instead of reusing this route. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/students/new" className="inline-flex min-h-12 items-center text-blue-700 underline">Try again</a>
     </div>;
   }
