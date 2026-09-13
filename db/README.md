@@ -96,3 +96,23 @@ Success revalidates the list, detail and edit paths, then the client replaces th
 edit route with the detail route and an `updated=1` success indicator. This query
 parameter is a UI notice, not an audit record. Class edits only affect the current
 relationship; future daily records must snapshot historical class context.
+
+## Deactivate Student
+
+Active student details offer an expandable confirmation naming the student.
+Confirmation calls a Server Action that validates the UUID and an explicit true
+confirmation flag, then delegates to the existing mutation layer. A transaction
+locks and rechecks the student row, changing only `status` to `INACTIVE` and
+`updated_at`. Already-inactive requests succeed without changing any fields or
+timestamps. No data is deleted and no reactivation action exists.
+
+Success revalidates list/detail/edit paths and returns to detail with a
+`deactivated=1` notice, shown only when the database status is inactive. List and
+detail retain their gray Inactive badges; deactivation is hidden for inactive
+students. Editing still preserves status and creation still defaults to active.
+Future operational selectors and mutations must explicitly require ACTIVE
+students; the current all-status management list is not an eligibility query.
+No operational workflows exist yet in this milestone.
+
+The integration test also deactivates its fictional Test student, checks repeated
+requests and edits while inactive, and retains the record afterward.

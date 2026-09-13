@@ -1,12 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudentSchema, editStudentSchema } from "../lib/validation/student";
+import { createStudentSchema, editStudentSchema, deactivateStudentSchema } from "../lib/validation/student";
 
 const validInput = {
   submissionId: "a3a00000-0000-4000-8000-000000000001",
   name: "  Test Student  ",
   schoolClassId: "a2c00000-0000-4000-8000-000000000101",
 };
+
+test("deactivation requires a UUID and explicit confirmation and excludes other fields", () => {
+  const input = { id: validInput.submissionId, confirmed: true };
+  assert.deepEqual(deactivateStudentSchema.parse({ ...input, name: "Ignored", status: "ACTIVE", notes: "Ignored", updatedAt: "fake" }), input);
+  for (const invalid of [null, {}, { ...input, id: "invalid" }, { id: input.id }, { ...input, confirmed: false }, { ...input, confirmed: "true" }]) {
+    assert.equal(deactivateStudentSchema.safeParse(invalid).success, false);
+  }
+});
 
 test("trims names and stores absent or blank optional values as null", () => {
   const value = createStudentSchema.parse({ ...validInput, parentName: "  ", notes: "" });
