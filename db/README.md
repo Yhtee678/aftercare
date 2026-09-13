@@ -116,3 +116,85 @@ No operational workflows exist yet in this milestone.
 
 The integration test also deactivates its fictional Test student, checks repeated
 requests and edits while inactive, and retains the record afterward.
+
+## School management
+
+More links to `/more/schools`, with add, detail and edit routes beneath it.
+The management list includes active and inactive schools; detail also shows
+created/updated timestamps in UTC. Missing or invalid IDs use `notFound()` and
+database failures show safe retry messages.
+
+School names are trimmed, required and limited to 200 characters, consistent with
+the existing name forms. Duplicate names remain allowed by the existing schema.
+Zod validates server inputs; creation fixes status to ACTIVE. A per-form UUID
+prevents duplicate inserts on retries. Matching retries return the existing row;
+changed names with an already-used UUID are rejected. New forms can create
+separate schools with the same name.
+
+Edit and deactivation transactions lock/recheck the current school. Editing only
+changes the name, preserving status; deactivation only changes status. Changed
+rows explicitly update `updated_at` using PostgreSQL `now()`, matching the clock
+used for creation timestamps; identical edits and repeated deactivations
+are no-ops. Separate edits remain last-write-wins. Classes and students are never
+updated or deleted by these mutations. Existing class selection and student
+mutations already require ACTIVE classes in ACTIVE schools.
+
+Actions revalidate school list/detail/edit and the Students subtree (school names
+and class availability). Forms return to school detail with success notices.
+Deactivation uses the shared named confirmation UI and is hidden for inactive
+schools. Forms require JavaScript. Authentication and reactivation remain outside
+this milestone; no schema or migration changes were made.
+
+Run `npm run test:schools` for validation checks. After building and starting on
+port 3100, run `node --import tsx tests/school-management.integration.ts` to test
+real Server Actions and reads. It retains one fictional Test school, one Test
+class fixture and one Test student, verifies relationship preservation and class
+unavailability after school deactivation, and never deletes existing records.
+
+## School Class management
+
+More links to `/more/classes`, with add, detail and edit routes below it. List and
+detail join classes to schools in one query and retain inactive records. Class
+status is distinct from school status: a class under an inactive school remains
+readable but is unavailable for Student selection. Invalid/missing IDs use
+`notFound()`; query failures display safe retry states.
+
+The shared add/edit form uses React Hook Form and Zod. Server Actions validate
+again. School/class/submission IDs must be UUIDs; class names are trimmed and
+limited to 1–200 characters. For this primary-school MVP, grades are integers 1–6;
+academic years are four-digit integers (1000–9999), defaulting to the current UTC
+year in the add form. These application limits are assumptions, not new database
+constraints. Numeric form strings are parsed strictly; blank, boolean and
+fractional values are rejected. Client status and audit fields are ignored.
+
+Create/edit require an ACTIVE school, rechecked under a shared row lock inside
+the mutation transaction. Edit locks the intended class row and preserves status;
+deactivation locks/rechecks the class and changes only status and `updated_at`.
+Timestamps use PostgreSQL `now()` consistently with School Management. Identical
+edits and repeated deactivation leave timestamps unchanged. Creation uses a
+per-form UUID to prevent duplicate retries; conflicting reuse is rejected.
+
+The existing composite constraint on school/year/grade/class name remains the
+authority for uniqueness, including concurrent attempts and inactive records.
+Only its specific PostgreSQL unique-violation code/constraint is translated into
+a safe duplicate-class message. Matching names in different schools remain valid;
+comparison follows the existing case-sensitive database behavior.
+
+Class mutations never modify students or their foreign keys. Changing a class's
+school/year/grade/name changes current joined context; future daily records must
+snapshot historical class context. No history tables or reactivation are added.
+Existing Student queries/mutations require both class and school to be ACTIVE.
+The edit form requires selecting another active school when its current school
+is inactive. An inactive class may have its details edited without reactivation.
+
+Success revalidates class list/detail/edit and the Students subtree, then returns
+to detail with a success notice. School mutations also invalidate the class
+subtree for school names and availability. Deactivation reuses the named shared
+confirmation. Forms require JavaScript; separate edits remain last-write-wins.
+
+Run `npm run test:classes` for validation tests. With a production build running
+locally on port 3100, run `node --import tsx tests/school-class-management.integration.ts`.
+It retains three fictional Test schools, two Test classes and one Test student,
+verifies composite uniqueness, edits, deactivation and Student selection rules,
+and checks unrelated records remain unchanged. Existing school and student
+integration suites can then be run separately; no test deletes records.
