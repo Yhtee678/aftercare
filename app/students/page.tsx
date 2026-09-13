@@ -23,6 +23,8 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
         <p role="alert" className="text-sm text-slate-600">Unable to load students. Please try again.</p>
+        {/* A full reload retries the failed database read instead of reusing this route. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/students" className="inline-flex min-h-12 items-center rounded-lg px-4 text-sm font-medium text-blue-700 underline focus-visible:outline-2">Try again</a>
       </div>
     );
@@ -48,7 +50,8 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
         <ul className="grid gap-3 sm:grid-cols-2">
           {studentList.map((student) => (
             <li key={student.id}>
-              <Card className="h-full shadow-none">
+              <Link href={`/students/${student.id}`} className="block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+              <Card className="h-full shadow-none hover:border-blue-300">
                 <CardContent className="space-y-3">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h2 className="min-w-0 break-words text-base font-medium">{student.name}</h2>
@@ -60,6 +63,7 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
                   <p className="text-sm text-slate-600">Grade {student.grade} · {student.className}</p>
                 </CardContent>
               </Card>
+              </Link>
             </li>
           ))}
         </ul>

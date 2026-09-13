@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { config } from "dotenv";
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, eq, inArray, ne } from "drizzle-orm";
 import { schoolClasses, schools, students } from "../db/schema";
 
 config({ path: ".env.local", quiet: true });
@@ -18,11 +18,13 @@ async function run() {
   };
   const actionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "createStudent")?.[0];
   assert.ok(actionId);
+  const editActionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "editStudent")?.[0];
+  assert.ok(editActionId);
 
-  const invoke = async (input: unknown) => {
-    const response = await fetch(`${baseUrl}/students/new`, {
+  const invoke = async (input: unknown, editingId?: string) => {
+    const response = await fetch(`${baseUrl}${editingId ? `/students/${editingId}/edit` : "/students/new"}`, {
       method: "POST",
-      headers: { "Next-Action": actionId, "Content-Type": "text/plain;charset=UTF-8", Origin: baseUrl },
+      headers: { "Next-Action": editingId ? editActionId : actionId, "Content-Type": "text/plain;charset=UTF-8", Origin: baseUrl },
       body: JSON.stringify([input]),
     });
     assert.equal(response.status, 200);
@@ -81,6 +83,53 @@ async function run() {
     assert.ok(resultPage.includes("Student added successfully."));
     assert.ok(resultPage.includes('aria-current="page"'));
     console.log("PASS: Students view includes the persisted student, success message, and active navigation.");
+
+    const detail = await (await fetch(`${baseUrl}/students/${submissionId}`)).text();
+    assert.ok(detail.includes(testName) && detail.includes("Edit Student") && detail.includes("Not provided"));
+    assert.ok(resultPage.includes(`href="/students/${submissionId}"`));
+    const editForm = await (await fetch(`${baseUrl}/students/${submissionId}/edit`)).text();
+    assert.ok(editForm.includes(`value="${testName}"`) && editForm.includes("Save changes"));
+    assert.ok(!editForm.includes('name="status"'));
+    for (const id of ["invalid-id", randomUUID()]) {
+      for (const suffix of ["", "/edit"]) {
+        const missing = await (await fetch(`${baseUrl}/students/${id}${suffix}`)).text();
+        assert.ok(missing.includes("Student not found"));
+      }
+    }
+    console.log("PASS: detail, prefilled edit form, list links and invalid/missing route IDs.");
+
+    const readTarget = async () => (await db.select().from(students).where(eq(students.id, submissionId)))[0];
+    const before = await readTarget();
+    const otherRows = await db.select().from(students).where(ne(students.id, submissionId)).orderBy(asc(students.id));
+    const [otherClass] = await db.select({ id: schoolClasses.id }).from(schoolClasses)
+      .innerJoin(schools, eq(schoolClasses.schoolId, schools.id))
+      .where(and(ne(schoolClasses.id, activeClass.id), eq(schoolClasses.status, "ACTIVE"), eq(schools.status, "ACTIVE"))).limit(1);
+    assert.ok(otherClass);
+    const editInput = { ...input, id: submissionId, schoolClassId: otherClass.id, name: `Test M3B Edited ${submissionId.slice(0, 8)}`, parentName: "Test Parent", parentPhone: "+60 12 000 0000", notes: "M3B fictional edit test", status: "INACTIVE" };
+    assert.equal((await invoke({ ...editInput, name: " " }, submissionId)).success, false);
+    assert.equal((await invoke({ ...editInput, schoolClassId: randomUUID() }, submissionId)).success, false);
+    assert.equal((await invoke({ ...editInput, id: randomUUID() }, submissionId)).success, false);
+    assert.deepEqual(await readTarget(), before);
+    console.log("PASS: invalid edit, unavailable class and missing student rejected without updating.");
+
+    const edits = await Promise.all([invoke(editInput, submissionId), invoke(editInput, submissionId)]);
+    assert.ok(edits.every((result) => result.success && result.id === submissionId));
+    const after = await readTarget();
+    assert.equal(after.name, editInput.name);
+    assert.equal(after.schoolClassId, otherClass.id);
+    assert.equal(after.parentName, editInput.parentName);
+    assert.equal(after.parentPhone, editInput.parentPhone);
+    assert.equal(after.notes, editInput.notes);
+    assert.equal(after.status, before.status);
+    assert.equal(after.createdAt.getTime(), before.createdAt.getTime());
+    assert.ok(after.updatedAt.getTime() > before.updatedAt.getTime());
+    assert.equal((await invoke(editInput, submissionId)).success, true);
+    assert.deepEqual(await readTarget(), after);
+    assert.deepEqual(await db.select().from(students).where(ne(students.id, submissionId)).orderBy(asc(students.id)), otherRows);
+    const updatedDetail = await (await fetch(`${baseUrl}/students/${submissionId}?updated=1`)).text();
+    assert.ok(updatedDetail.includes(editInput.name) && updatedDetail.includes("Student updated successfully.") && updatedDetail.includes("Test Parent"));
+    assert.ok((await (await fetch(`${baseUrl}/students`)).text()).includes(editInput.name));
+    console.log("PASS: edit changes exactly the intended row, preserves status/created_at, advances updated_at, makes retries a no-op, and refreshes detail/list.");
   } finally {
     await db.$client.end({ timeout: 5 });
   }

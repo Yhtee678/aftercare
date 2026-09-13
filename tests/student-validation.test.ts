@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createStudentSchema } from "../lib/validation/student";
+import { createStudentSchema, editStudentSchema } from "../lib/validation/student";
 
 const validInput = {
   submissionId: "a3a00000-0000-4000-8000-000000000001",
@@ -37,4 +37,17 @@ test("does not accept client-supplied status or extra database fields", () => {
   const value = createStudentSchema.parse({ ...validInput, status: "INACTIVE", createdAt: "fake" });
   assert.equal("status" in value, false);
   assert.equal("createdAt" in value, false);
+});
+
+test("edit reuses field validation, requires a student UUID and excludes status/audit fields", () => {
+  const input = { ...validInput, id: validInput.submissionId, parentName: " ", status: "INACTIVE", updatedAt: "fake" };
+  const value = editStudentSchema.parse(input);
+  assert.equal(value.name, "Test Student");
+  assert.equal(value.parentName, null);
+  assert.equal("status" in value, false);
+  assert.equal("updatedAt" in value, false);
+  assert.equal("submissionId" in value, false);
+  for (const invalid of [{ id: "invalid" }, { name: " " }, { schoolClassId: "" }, { notes: "a".repeat(2001) }]) {
+    assert.equal(editStudentSchema.safeParse({ ...input, ...invalid }).success, false);
+  }
 });

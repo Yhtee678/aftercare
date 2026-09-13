@@ -19,6 +19,10 @@ export const createStudentSchema = studentFormSchema.extend({
 
 export type StudentFormValues = z.input<typeof studentFormSchema>;
 export type CreateStudentInput = z.output<typeof createStudentSchema>;
+export const editStudentSchema = studentFormSchema.extend({
+  id: z.uuid("This student link is invalid. Return to Students and try again."),
+});
+export type EditStudentInput = z.output<typeof editStudentSchema>;
 export type StudentField = keyof StudentFormValues;
 export type CreateStudentResult =
   | { success: true; id: string }
