@@ -229,3 +229,31 @@ Run `npm run test:homework`. After applying the reviewed migration and starting 
 built app on port 3100, run `npm run test:homework:integration`. It retains fictional
 Test fixtures and verifies assignment eligibility, retries, transaction rollback,
 constraints, checking transitions, rendered reads and preservation of existing data.
+
+## Daily Care
+
+`daily_student_records` is unique by student/date, with restrictive student/class
+foreign keys and a class/date index. Arrival creates the row lazily; the remaining
+checks require arrival (plan BR5). One transaction locks the student, rechecks
+ACTIVE student/class/school and the requested current class, then inserts or locks
+the daily record. Concurrent actions preserve separate checks; repeated actions
+are no-ops, including timestamps. Arrival is never overwritten. No reset/undo flow
+is included. Final Check is a standalone teacher checklist confirmation here;
+academic/release eligibility belongs to future slices.
+
+The class ID, school name, class name, grade and academic year are immutable
+snapshots from the first daily action. Later student moves or school/class edits
+do not rewrite them. Same-day moves retain the original context and checklist;
+the current class view explains differing recorded context. Past records remain
+readable in PostgreSQL without active-status filtering; a history browser is deferred.
+
+`lib/care-date.ts` centralizes Malaysia's `Asia/Kuala_Lumpur` calendar day. Reads
+and mutations derive the day from PostgreSQL time; arrival and audit timestamps
+use `now()`. Actions carry the displayed date only as a stale-page guard: yesterday's
+open page cannot silently write to today. Refresh after local midnight.
+
+Care uses Grade → active Class → active Students, with one-tap completion and safe
+pending/error states. Inactive school/class direct links are read-only. No Auth,
+Staff, parent contact, release or Homework integration is added. Run `npm run
+test:care`; after the reviewed migration and a local production server on port
+3100, run `npm run test:care:integration`. Tests retain fictional Test fixtures.
