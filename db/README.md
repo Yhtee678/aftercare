@@ -198,3 +198,34 @@ It retains three fictional Test schools, two Test classes and one Test student,
 verifies composite uniqueness, edits, deactivation and Student selection rules,
 and checks unrelated records remain unchanged. Existing school and student
 integration suites can then be run separately; no test deletes records.
+
+## Homework
+
+`homework_tasks` stores one definition per task, not one copy per student.
+`homework_scope` is CLASS or INDIVIDUAL; a CHECK requires exactly the matching
+class/student foreign key. Individual entry is deferred; subject remains text.
+`student_homework` stores each student's assignment, uniquely constrained by
+student/task. Its `homework_status` defaults to PENDING. Teachers may mark PENDING
+as COMPLETED or CORRECTION_REQUIRED, then complete corrected work after rechecking.
+Completed assignments cannot be changed by this flow. Checks explicitly set
+`checked_at` and `updated_at` with PostgreSQL `now()`; actor tracking awaits Staff/Auth.
+
+Creation validates an active class/school and locks the active roster while one
+transaction inserts the task and all assignments. An empty roster is rejected.
+A per-form task UUID and transaction advisory lock make matching retries return
+the original task without assigning again; changed payloads with that UUID fail.
+Opening a new form intentionally allows a new task with the same description.
+Assignment membership is captured at creation; later enrollment/status changes do
+not rewrite it. All homework foreign keys use RESTRICT to preserve historical
+references. Class labels still reflect current class metadata; snapshots are deferred.
+
+Class/date and individual-student/date indexes support task lookups. The assignment
+unique index supports student lookups; a task index supports rosters and counts.
+No standalone status index is needed yet. `/homework` reads at request time, showing
+unresolved tasks first, newest dates first; no pagination yet. Task dates default
+to Malaysia's calendar date. Forms require JavaScript. Authentication is out of scope.
+
+Run `npm run test:homework`. After applying the reviewed migration and starting the
+built app on port 3100, run `npm run test:homework:integration`. It retains fictional
+Test fixtures and verifies assignment eligibility, retries, transaction rollback,
+constraints, checking transitions, rendered reads and preservation of existing data.
