@@ -116,3 +116,37 @@ No operational workflows exist yet in this milestone.
 
 The integration test also deactivates its fictional Test student, checks repeated
 requests and edits while inactive, and retains the record afterward.
+
+## School management
+
+More links to `/more/schools`, with add, detail and edit routes beneath it.
+The management list includes active and inactive schools; detail also shows
+created/updated timestamps in UTC. Missing or invalid IDs use `notFound()` and
+database failures show safe retry messages.
+
+School names are trimmed, required and limited to 200 characters, consistent with
+the existing name forms. Duplicate names remain allowed by the existing schema.
+Zod validates server inputs; creation fixes status to ACTIVE. A per-form UUID
+prevents duplicate inserts on retries. Matching retries return the existing row;
+changed names with an already-used UUID are rejected. New forms can create
+separate schools with the same name.
+
+Edit and deactivation transactions lock/recheck the current school. Editing only
+changes the name, preserving status; deactivation only changes status. Changed
+rows explicitly update `updated_at` using PostgreSQL `now()`, matching the clock
+used for creation timestamps; identical edits and repeated deactivations
+are no-ops. Separate edits remain last-write-wins. Classes and students are never
+updated or deleted by these mutations. Existing class selection and student
+mutations already require ACTIVE classes in ACTIVE schools.
+
+Actions revalidate school list/detail/edit and the Students subtree (school names
+and class availability). Forms return to school detail with success notices.
+Deactivation uses the shared named confirmation UI and is hidden for inactive
+schools. Forms require JavaScript. Authentication and reactivation remain outside
+this milestone; no schema or migration changes were made.
+
+Run `npm run test:schools` for validation checks. After building and starting on
+port 3100, run `node --import tsx tests/school-management.integration.ts` to test
+real Server Actions and reads. It retains one fictional Test school, one Test
+class fixture and one Test student, verifies relationship preservation and class
+unavailability after school deactivation, and never deletes existing records.
