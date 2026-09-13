@@ -3,7 +3,22 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { schoolClasses, schools, students } from "@/db/schema";
-import type { CreateStudentInput, CreateStudentResult, EditStudentInput } from "@/lib/validation/student";
+import type { CreateStudentInput, CreateStudentResult, EditStudentInput, DeactivateStudentInput, DeactivateStudentResult } from "@/lib/validation/student";
+
+export async function markStudentInactive(input: DeactivateStudentInput): Promise<DeactivateStudentResult> {
+  return db.transaction(async (tx) => {
+    const [student] = await tx.select({ id: students.id, status: students.status })
+      .from(students).where(eq(students.id, input.id)).limit(1).for("update");
+    if (!student) return { success: false, message: "Student not found. Return to Students and try again." };
+    // Retries leave every field, including updated_at, unchanged.
+    if (student.status === "INACTIVE") return { success: true, id: student.id };
+    const [updated] = await tx.update(students)
+      .set({ status: "INACTIVE", updatedAt: new Date() })
+      .where(and(eq(students.id, student.id), eq(students.status, "ACTIVE")))
+      .returning({ id: students.id });
+    return { success: true, id: updated.id };
+  });
+}
 
 export async function updateStudent(input: EditStudentInput): Promise<CreateStudentResult> {
   return db.transaction(async (tx) => {

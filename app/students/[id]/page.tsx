@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StudentLoadError } from "@/components/students/student-load-error";
+import { DeactivateStudentForm } from "@/components/students/deactivate-student-form";
 
 export const metadata: Metadata = { title: "Student details" };
 
@@ -23,7 +24,9 @@ export default async function Page({ params, searchParams }: PageProps<"/student
     return <StudentLoadError retryHref={`/students/${id}`} />;
   }
   if (!student) notFound();
-  const updated = (await searchParams).updated === "1";
+  const notices = await searchParams;
+  const updated = notices.updated === "1";
+  const deactivated = notices.deactivated === "1" && student.status === "INACTIVE";
   return <div className="max-w-2xl space-y-6">
     <Link href="/students" className="inline-flex min-h-12 items-center text-sm text-blue-700 underline">Back to Students</Link>
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -33,6 +36,7 @@ export default async function Page({ params, searchParams }: PageProps<"/student
       </Link>
     </div>
     {updated && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">Student updated successfully.</p>}
+    {deactivated && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">Student deactivated successfully. Their records are preserved.</p>}
     <Card className="shadow-none"><CardContent>
       <dl className="grid gap-5 sm:grid-cols-2">
         <div><dt className="text-sm text-slate-600">Status</dt><dd className="mt-1"><Badge variant="secondary" className={student.status === "ACTIVE" ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}>{student.status === "ACTIVE" ? "Active" : "Inactive"}</Badge></dd></div>
@@ -44,5 +48,6 @@ export default async function Page({ params, searchParams }: PageProps<"/student
         <div className="sm:col-span-2"><dt className="text-sm text-slate-600">Notes</dt><dd className="mt-1 whitespace-pre-wrap break-words">{student.notes || "Not provided"}</dd></div>
       </dl>
     </CardContent></Card>
+    {student.status === "ACTIVE" && <DeactivateStudentForm id={student.id} name={student.name} />}
   </div>;
 }

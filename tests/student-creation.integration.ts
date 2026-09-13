@@ -20,11 +20,13 @@ async function run() {
   assert.ok(actionId);
   const editActionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "editStudent")?.[0];
   assert.ok(editActionId);
+  const deactivateActionId = Object.entries(manifest.node).find(([, entry]) => entry.exportedName === "deactivateStudent")?.[0];
+  assert.ok(deactivateActionId);
 
-  const invoke = async (input: unknown, editingId?: string) => {
-    const response = await fetch(`${baseUrl}${editingId ? `/students/${editingId}/edit` : "/students/new"}`, {
+  const invoke = async (input: unknown, editingId?: string, deactivating = false) => {
+    const response = await fetch(`${baseUrl}${editingId ? `/students/${editingId}${deactivating ? "" : "/edit"}` : "/students/new"}`, {
       method: "POST",
-      headers: { "Next-Action": editingId ? editActionId : actionId, "Content-Type": "text/plain;charset=UTF-8", Origin: baseUrl },
+      headers: { "Next-Action": deactivating ? deactivateActionId : editingId ? editActionId : actionId, "Content-Type": "text/plain;charset=UTF-8", Origin: baseUrl },
       body: JSON.stringify([input]),
     });
     assert.equal(response.status, 200);
@@ -130,6 +132,40 @@ async function run() {
     assert.ok(updatedDetail.includes(editInput.name) && updatedDetail.includes("Student updated successfully.") && updatedDetail.includes("Test Parent"));
     assert.ok((await (await fetch(`${baseUrl}/students`)).text()).includes(editInput.name));
     console.log("PASS: edit changes exactly the intended row, preserves status/created_at, advances updated_at, makes retries a no-op, and refreshes detail/list.");
+
+    assert.ok(updatedDetail.includes("Deactivate Student") && updatedDetail.includes("Confirm deactivation"));
+    assert.ok(updatedDetail.includes("This marks the student as inactive.") && updatedDetail.includes(editInput.name));
+    const deactivateInput = { id: submissionId, confirmed: true };
+    for (const invalid of [{ id: submissionId }, { ...deactivateInput, confirmed: false }, { ...deactivateInput, id: "invalid" }, { ...deactivateInput, id: randomUUID() }]) {
+      assert.equal((await invoke(invalid, submissionId, true)).success, false);
+    }
+    assert.deepEqual(await readTarget(), after);
+    const deactivations = await Promise.all([invoke(deactivateInput, submissionId, true), invoke(deactivateInput, submissionId, true)]);
+    assert.ok(deactivations.every((result) => result.success && result.id === submissionId));
+    const inactive = await readTarget();
+    assert.equal(inactive.status, "INACTIVE");
+    assert.ok(inactive.updatedAt.getTime() > after.updatedAt.getTime());
+    assert.deepEqual(inactive, { ...after, status: "INACTIVE", updatedAt: inactive.updatedAt });
+    assert.equal((await invoke({ ...deactivateInput, name: "Test Unwanted Change", status: "ACTIVE", notes: "Unwanted" }, submissionId, true)).success, true);
+    assert.deepEqual(await readTarget(), inactive);
+    assert.deepEqual(await db.select().from(students).where(ne(students.id, submissionId)).orderBy(asc(students.id)), otherRows);
+    console.log("PASS: confirmation/ID validation, concurrent ACTIVE to INACTIVE transition, unchanged other rows/fields and idempotent inactive retries.");
+
+    const inactiveDetail = await (await fetch(`${baseUrl}/students/${submissionId}?deactivated=1`)).text();
+    assert.ok(inactiveDetail.includes("Student deactivated successfully.") && inactiveDetail.includes(">Inactive</"));
+    assert.ok(!inactiveDetail.includes(">Deactivate Student</summary>"));
+    const inactiveList = await (await fetch(`${baseUrl}/students`)).text();
+    const card = inactiveList.match(new RegExp(`<a[^>]*href="/students/${submissionId}"[^>]*>[\\s\\S]*?</a>`))?.[0];
+    assert.ok(card?.includes("Inactive") && card.includes(editInput.name));
+    const inactiveEdit = { ...editInput, notes: "M3C fictional inactive edit test", status: "ACTIVE" };
+    assert.equal((await invoke(inactiveEdit, submissionId)).success, true);
+    const editedInactive = await readTarget();
+    assert.equal(editedInactive.status, "INACTIVE");
+    assert.equal(editedInactive.notes, inactiveEdit.notes);
+    assert.equal((await invoke(deactivateInput, submissionId, true)).success, true);
+    assert.deepEqual(await readTarget(), editedInactive);
+    assert.deepEqual(await db.select().from(students).where(ne(students.id, submissionId)).orderBy(asc(students.id)), otherRows);
+    console.log("PASS: inactive detail/list badges, success notice, hidden deactivation action and editing without reactivation.");
   } finally {
     await db.$client.end({ timeout: 5 });
   }

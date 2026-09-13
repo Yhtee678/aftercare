@@ -23,6 +23,13 @@ export const editStudentSchema = studentFormSchema.extend({
   id: z.uuid("This student link is invalid. Return to Students and try again."),
 });
 export type EditStudentInput = z.output<typeof editStudentSchema>;
+export const deactivateStudentSchema = editStudentSchema.pick({ id: true }).extend({
+  confirmed: z.literal(true, "Confirm deactivation before continuing."),
+});
+export type DeactivateStudentInput = z.output<typeof deactivateStudentSchema>;
+export type DeactivateStudentResult =
+  | { success: true; id: string }
+  | { success: false; message: string };
 export type StudentField = keyof StudentFormValues;
 export type CreateStudentResult =
   | { success: true; id: string }
