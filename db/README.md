@@ -48,3 +48,29 @@ in `db/connection.ts` and closes its pool on completion. The application's
 name, status, school name, grade, and class name. It shows active and inactive
 students, with no pagination for this initial small dataset. There is no
 authentication yet; this stage is intended for fictional development data.
+
+## Add Student
+
+`/students/new` uses React Hook Form and Zod. The Server Action validates the
+payload again, then calls `db/mutations/students.ts` using the existing connection.
+Names are required and trimmed (maximum 200 characters); class and submission IDs
+must be UUIDs. Optional parent name/phone/notes are trimmed and become `NULL` when
+blank, with limits of 200/50/2,000 characters. No phone-number format is imposed.
+Only active classes in active schools can be selected. The mutation rechecks this
+inside its transaction, holding shared row locks until insertion commits.
+
+One server-generated UUID identifies each form submission and becomes the student
+primary key. Repeated or concurrent requests with the same UUID and details return
+the existing result; different details with that UUID are rejected. No existing
+student is updated. A newly opened form gets a new UUID, so this intentionally does
+not prevent distinct students with the same name. Status is always `ACTIVE` on insert.
+
+Success revalidates `/students`; the client returns to that page with a creation
+ID, which is validated and matched against the database list before showing the
+success message. The form requires JavaScript. There are no authentication or role
+checks at this milestone, as explicitly scoped.
+
+Run `npm run test:students` for validation tests. To exercise the actual action,
+build and start the application on port 3100, then run
+`node --import tsx tests/student-creation.integration.ts`. This explicit development
+test leaves one fictional `Test M3A Creation ...` student and deletes no data.

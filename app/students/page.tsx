@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { z } from "zod";
 
 export const metadata: Metadata = { title: "Students" };
 
-export default async function Page() {
+export default async function Page({ searchParams }: PageProps<"/students">) {
   await connection();
+  const created = z.uuid().safeParse((await searchParams).created);
 
   let studentList;
   try {
@@ -26,10 +30,18 @@ export default async function Page() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
-        <p className="text-sm leading-6 text-slate-600">Students and their current school classes.</p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
+          <p className="text-sm leading-6 text-slate-600">Students and their current school classes.</p>
+        </div>
+        <Link href="/students/new" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-blue-700 px-4 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+          <Plus aria-hidden="true" className="size-4" /> Add Student
+        </Link>
       </div>
+      {created.success && studentList.some((student) => student.id === created.data) && (
+        <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">Student added successfully.</p>
+      )}
       {studentList.length === 0 ? (
         <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No students recorded yet.</p>
       ) : (
