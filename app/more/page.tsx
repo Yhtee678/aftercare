@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, School } from "lucide-react";
+import { ChevronRight, School, Users } from "lucide-react";
 import { navigationItems } from "@/components/layout/navigation";
 import { PlaceholderPage } from "@/components/layout/placeholder-page";
 
@@ -14,6 +14,12 @@ export default function Page() {
           <li>
             <Link href="/more/schools" className="flex min-h-14 items-center gap-3 px-4 py-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700">
               <School aria-hidden="true" className="size-5" /> Schools
+              <ChevronRight aria-hidden="true" className="ml-auto size-4 text-slate-400" />
+            </Link>
+          </li>
+          <li>
+            <Link href="/more/classes" className="flex min-h-14 items-center gap-3 px-4 py-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700">
+              <Users aria-hidden="true" className="size-5" /> Classes
               <ChevronRight aria-hidden="true" className="ml-auto size-4 text-slate-400" />
             </Link>
           </li>

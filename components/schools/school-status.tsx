@@ -1,7 +1,1 @@
-import { Badge } from "@/components/ui/badge";
-
-export function SchoolStatus({ status }: { status: "ACTIVE" | "INACTIVE" }) {
-  return <Badge variant="secondary" className={status === "ACTIVE" ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}>
-    {status === "ACTIVE" ? "Active" : "Inactive"}
-  </Badge>;
-}
+export { RecordStatus as SchoolStatus } from "@/components/record-status";

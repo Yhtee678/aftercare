@@ -9,6 +9,7 @@ function refreshSchoolViews(id: string) {
   revalidatePath(`/more/schools/${id}/edit`);
   // School names and availability also appear in student pages/class selectors.
   revalidatePath("/students", "layout");
+  revalidatePath("/more/classes", "layout");
 }
 
 export async function createSchool(input: unknown): Promise<SchoolMutationResult> {
