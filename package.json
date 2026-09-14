@@ -18,7 +18,9 @@
     "test:homework:integration": "node --import tsx tests/homework.integration.ts",
     "test:care": "tsx --test tests/care-validation.test.ts",
     "test:care:integration": "node --import tsx tests/care.integration.ts",
-    "test:today": "node --import tsx tests/today.integration.ts"
+    "test:today": "node --import tsx tests/today.integration.ts",
+    "test:dictation": "tsx --test tests/dictation-validation.test.ts",
+    "test:dictation:integration": "node --import tsx tests/dictation.integration.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
