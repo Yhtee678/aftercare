@@ -10,7 +10,7 @@ test("Care follows Malaysia midnight, not UTC midnight", () => {
     ["2026-09-13T23:59:59.999Z", "2026-09-14"], ["2026-09-14T00:00:00.000Z", "2026-09-14"],
     ["2026-12-31T16:00:00.000Z", "2027-01-01"], ["2028-02-28T16:00:00.000Z", "2028-02-29"],
   ]) assert.equal(getCareDate(new Date(instant)), expected);
-  assert.match(formatCareTime("2026-09-13T05:30:00Z"), /1:30/);
+  assert.match(formatCareTime("2026-09-13T05:30:00Z"), /13:30/);
 });
 test("Care validates IDs, dates and the five completion-only actions", () => {
   const input = { studentId: randomUUID(), schoolClassId: randomUUID(), recordDate: "2026-09-13", action: "arrival" };

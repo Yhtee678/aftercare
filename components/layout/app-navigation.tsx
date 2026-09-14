@@ -10,7 +10,7 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
   const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <nav aria-label={mobile ? "Mobile navigation" : "Main navigation"}>
+    <nav aria-label={mobile ? "手机导航" : "主导航"}>
       <ul className={mobile ? "grid grid-cols-5 gap-1" : "space-y-1"}>
         {navigationItems.filter((item) => !mobile || item.mobile).map((item) => {
           const current = matches(item.href);

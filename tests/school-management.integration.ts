@@ -43,11 +43,11 @@ async function run() {
     const readSchool = async () => (await db.select().from(schools).where(eq(schools.id, id)))[0];
     assert.ok((await html("/more")).includes('href="/more/schools"'));
     const list = await html("/more/schools");
-    assert.ok(list.includes("Add School"));
+    assert.ok(list.includes("添加学校"));
     for (const school of otherSchools) assert.ok(list.includes(`/more/schools/${school.id}`));
     assert.ok((await html("/more/schools/new")).includes('name="name"'));
     for (const invalidId of ["invalid", randomUUID()]) {
-      for (const suffix of ["", "/edit"]) assert.ok((await html(`/more/schools/${invalidId}${suffix}`)).includes("School not found"));
+      for (const suffix of ["", "/edit"]) assert.ok((await html(`/more/schools/${invalidId}${suffix}`)).includes("找不到学校"));
     }
     for (const name of ["", "  ", 123, "a".repeat(201)]) {
       assert.equal((await invoke("createSchool", "/more/schools/new", { submissionId: id, name })).success, false);
@@ -61,7 +61,7 @@ async function run() {
     assert.equal(created.status, "ACTIVE");
     assert.equal((await invoke("createSchool", "/more/schools/new", { ...input, name: "Test Changed Retry" })).success, false);
     const detail = await html(`${route}?created=1`);
-    assert.ok(detail.includes(created.name) && detail.includes("School added successfully.") && detail.includes("Created (UTC)"));
+    assert.ok(detail.includes(created.name) && detail.includes("学校已添加。") && detail.includes("Created (UTC)"));
     assert.ok((await html(`${route}/edit`)).includes(`value="${created.name}"`));
     console.log("PASS: More link, real school list/detail, missing IDs, name validation, ACTIVE creation and concurrent retry protection.");
 
@@ -76,7 +76,7 @@ async function run() {
     assert.deepEqual(edited, { ...created, name: editInput.name, updatedAt: edited.updatedAt });
     assert.equal((await invoke("editSchool", `${route}/edit`, editInput)).success, true);
     assert.deepEqual(await readSchool(), edited);
-    assert.ok((await html(`${route}?updated=1`)).includes("School updated successfully."));
+    assert.ok((await html(`${route}?updated=1`)).includes("学校资料已更新。"));
 
     // Isolated relationship fixtures, never existing classes or students.
     const classId = randomUUID();
@@ -103,7 +103,7 @@ async function run() {
     console.log("PASS: isolated name edit, timestamps, confirmation, ACTIVE to INACTIVE and idempotency; related class/student preserved.");
 
     const inactiveDetail = await html(`${route}?deactivated=1`);
-    assert.ok(inactiveDetail.includes("School deactivated successfully.") && inactiveDetail.includes(">Inactive</"));
+    assert.ok(inactiveDetail.includes("学校已停用。") && inactiveDetail.includes(">Inactive</"));
     assert.ok(!inactiveDetail.includes(">Deactivate School</summary>"));
     assert.ok(!(await html("/students/new")).includes(`value="${classId}"`));
     const invalidStudentId = randomUUID();
@@ -112,7 +112,7 @@ async function run() {
     assert.equal((await invoke("editStudent", `/students/${studentId}/edit`, { id: studentId, name: "Test Rejected", schoolClassId: classId })).success, false);
     assert.ok((await html(`/students/${studentId}`)).includes(testStudent.name));
     assert.ok((await html("/students")).includes(testStudent.name));
-    assert.equal((await invoke("editSchool", `${route}/edit`, { ...editInput, name: `${editInput.name} Inactive`, status: "ACTIVE" })).success, true);
+    assert.equal((await invoke("editSchool", `${route}/edit`, { ...editInput, name: `${editInput.name} 已停用`, status: "ACTIVE" })).success, true);
     assert.equal((await readSchool()).status, "INACTIVE");
     assert.deepEqual(await db.select().from(schools).where(ne(schools.id, id)).orderBy(asc(schools.id)), otherSchools);
     assert.deepEqual(await db.select().from(schoolClasses).where(ne(schoolClasses.id, classId)).orderBy(asc(schoolClasses.id)), otherClasses);

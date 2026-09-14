@@ -14,14 +14,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Aftercare", template: "%s | Aftercare" },
-  description: "After-School Care Workflow System. A shared workspace for daily teacher care.",
+  title: { default: "辅成托育管理", template: "%s | 辅成托育管理" },
+  description: "辅成托育管理，协助老师共同处理每日托育工作。",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="zh-Hans"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><AppShell>{children}</AppShell></body>

@@ -1,4 +1,6 @@
 "use client";
+import { formatGrade } from "@/lib/ui-labels";
+
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,7 +32,7 @@ export function HomeworkForm({ classes, submissionId, today }: { classes: School
       if (!result.success) { setError("root", { message: result.message }); return; }
       setSaved(true);
       router.replace(`/homework/${result.id}?created=1`);
-    } catch { setError("root", { message: "Unable to confirm the save. Retry using this form." }); }
+    } catch { setError("root", { message: "暂时无法确认保存结果，请使用此表单重试。" }); }
   };
   return <form noValidate method="post" className="space-y-5" onSubmit={(event) => {
     event.preventDefault();
@@ -38,25 +40,25 @@ export function HomeworkForm({ classes, submissionId, today }: { classes: School
     saving.current = true;
     startTransition(async () => { try { await handleSubmit(submit)(event); } finally { saving.current = false; } });
   }}>
-    <noscript>Enable JavaScript to add homework.</noscript>
+    <noscript>请启用 JavaScript 以添加功课。</noscript>
     {errors.root && <p role="alert" className="text-red-700">{errors.root.message}</p>}
-    {saved && <p role="status" className="text-green-800">Homework saved and assigned.</p>}
+    {saved && <p role="status" className="text-green-800">功课已保存并分配。</p>}
     <fieldset disabled={isSubmitting || saved} className="space-y-5 disabled:opacity-70">
-      <div><label htmlFor="schoolClassId" className="text-sm font-medium">School / Class *</label>
+      <div><label htmlFor="schoolClassId" className="text-sm font-medium">学校／班级 *</label>
         <select id="schoolClassId" {...register("schoolClassId")} required className={inputClass} aria-invalid={!!errors.schoolClassId} aria-describedby="class-help class-error">
-          <option value="">Select an active class</option>
-          {classes.map((item) => <option key={item.id} value={item.id}>{item.schoolName} · {item.academicYear} · Grade {item.grade} · {item.className}</option>)}
+          <option value="">请选择已启用的班级</option>
+          {classes.map((item) => <option key={item.id} value={item.id}>{item.schoolName} · {item.academicYear} · {formatGrade(item.grade)} · {item.className}</option>)}
         </select>
-        <p id="class-help" className="mt-1 text-sm text-slate-600">Assigned to active students in this class when saved.</p>
+        <p id="class-help" className="mt-1 text-sm text-slate-600">保存后将分配给此班级中启用的学生。</p>
         {errors.schoolClassId && <p id="class-error" role="alert" className="text-sm text-red-700">{errors.schoolClassId.message}</p>}
       </div>
       {([
-        { name: "subject", label: "Subject", type: "text", required: true, maxLength: 200 },
-        { name: "description", label: "Description", type: "textarea", required: true, maxLength: 5000 },
-        { name: "taskType", label: "Task type (optional)", type: "text", required: false, maxLength: 200 },
-        { name: "pageFrom", label: "Page from (optional)", type: "number", required: false },
-        { name: "pageTo", label: "Page to (optional)", type: "number", required: false },
-        { name: "taskDate", label: "Task date", type: "date", required: true },
+        { name: "subject", label: "科目", type: "text", required: true, maxLength: 200 },
+        { name: "description", label: "功课内容", type: "textarea", required: true, maxLength: 5000 },
+        { name: "taskType", label: "功课类型（选填）", type: "text", required: false, maxLength: 200 },
+        { name: "pageFrom", label: "起始页数（选填）", type: "number", required: false },
+        { name: "pageTo", label: "结束页数（选填）", type: "number", required: false },
+        { name: "taskDate", label: "功课日期", type: "date", required: true },
       ] as const).map((field) => <div key={field.name}>
         <label htmlFor={field.name} className="text-sm font-medium">{field.label}{field.required ? " *" : ""}</label>
         {field.type === "textarea"
@@ -66,8 +68,8 @@ export function HomeworkForm({ classes, submissionId, today }: { classes: School
             aria-invalid={!!errors[field.name]} aria-describedby={`${field.name}-error`} />}
         {errors[field.name] && <p id={`${field.name}-error`} role="alert" className="text-sm text-red-700">{errors[field.name]?.message}</p>}
       </div>)}
-      <Button type="submit" className="min-h-12 w-full bg-blue-700 text-white hover:bg-blue-800 sm:w-auto">{saved ? "Saved" : isSubmitting ? "Assigning…" : "Save and assign Homework"}</Button>
+      <Button type="submit" className="min-h-12 w-full bg-blue-700 text-white hover:bg-blue-800 sm:w-auto">{saved ? "已保存" : isSubmitting ? "正在分配…" : "保存并分配功课"}</Button>
     </fieldset>
-    <Link href="/homework" className="inline-flex min-h-12 items-center text-sm text-slate-600 underline">Cancel</Link>
+    <Link href="/homework" className="inline-flex min-h-12 items-center text-sm text-slate-600 underline">取消</Link>
   </form>;
 }

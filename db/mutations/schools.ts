@@ -14,14 +14,14 @@ export async function insertSchool(input: CreateSchoolInput): Promise<SchoolMuta
     const [existing] = await tx.select({ id: schools.id, name: schools.name }).from(schools)
       .where(eq(schools.id, input.submissionId)).limit(1);
     if (existing?.name === input.name) return { success: true, id: existing.id };
-    return { success: false, message: "This form has already been used with different details. Open Add School again." };
+    return { success: false, message: "此表单已保存其他资料，请重新打开“添加学校”。" };
   });
 }
 
 export async function updateSchool(input: EditSchoolInput): Promise<SchoolMutationResult> {
   return db.transaction(async (tx) => {
     const [school] = await tx.select().from(schools).where(eq(schools.id, input.id)).limit(1).for("update");
-    if (!school) return { success: false, message: "School not found. Return to Schools and try again." };
+    if (!school) return { success: false, message: "找不到学校，请返回学校列表后重试。" };
     if (school.name === input.name) return { success: true, id: school.id };
     await tx.update(schools).set({ name: input.name, updatedAt: sql`now()` }).where(eq(schools.id, school.id));
     return { success: true, id: school.id };
@@ -32,7 +32,7 @@ export async function markSchoolInactive(input: DeactivateSchoolInput): Promise<
   return db.transaction(async (tx) => {
     const [school] = await tx.select({ id: schools.id, status: schools.status }).from(schools)
       .where(eq(schools.id, input.id)).limit(1).for("update");
-    if (!school) return { success: false, message: "School not found. Return to Schools and try again." };
+    if (!school) return { success: false, message: "找不到学校，请返回学校列表后重试。" };
     if (school.status === "INACTIVE") return { success: true, id: school.id };
     await tx.update(schools).set({ status: "INACTIVE", updatedAt: sql`now()` })
       .where(and(eq(schools.id, school.id), eq(schools.status, "ACTIVE")));

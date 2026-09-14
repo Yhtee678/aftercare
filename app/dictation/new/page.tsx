@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { DictationForm } from "@/components/dictation/dictation-form";
 import { DictationLoadError } from "@/components/dictation/dictation-load-error";
 
-export const metadata: Metadata = { title: "Add Dictation" };
+export const metadata: Metadata = { title: "添加听写" };
 export default async function Page({ searchParams }: { searchParams: Promise<{ classId?: string }> }) {
   await connection();
   let classes;
@@ -20,7 +20,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
   }
   const requestedClass = (await searchParams).classId;
   const classId = classes.find((item) => item.id === requestedClass)?.id ?? "";
-  return <div className="max-w-2xl space-y-6"><Link href="/dictation" className="inline-flex min-h-12 items-center text-blue-700 underline">Back to Dictation</Link><h1 className="text-2xl font-semibold">Add Dictation</h1>
-    {classes.length ? <DictationForm classes={classes} submissionId={randomUUID()} today={today} classId={classId} /> : <p>No active classes are available. Add an active school and class in More first.</p>}
+  return <div className="max-w-2xl space-y-6"><Link href="/dictation" className="inline-flex min-h-12 items-center text-blue-700 underline">返回听写</Link><h1 className="text-2xl font-semibold">添加听写</h1>
+    {classes.length ? <DictationForm classes={classes} submissionId={randomUUID()} today={today} classId={classId} /> : <p>暂无可用班级，请先在“更多”中添加并启用学校和班级。</p>}
   </div>;
 }
