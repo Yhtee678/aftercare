@@ -257,3 +257,22 @@ pending/error states. Inactive school/class direct links are read-only. No Auth,
 Staff, parent contact, release or Homework integration is added. Run `npm run
 test:care`; after the reviewed migration and a local production server on port
 3100, run `npm run test:care:integration`. Tests retain fictional Test fixtures.
+
+## Today / Attention
+
+`/today` derives corrections and today's arrived-but-bag-unchecked records; there
+is no attention table. All unresolved corrections remain visible regardless of
+task date or deactivation. Bag attention requires an active student/class/school
+and links to the student's current Care class, including after same-day moves.
+The preserved daily snapshot is never changed. Corrections use the task's class
+(current student class for individual tasks). Ordering is correction first, then
+bag, each ordered by grade/class/student and stable tie-breakers.
+
+The date comes from the existing Care clock. Separate SQL roster and homework
+aggregates prevent multiplied counts. Active class summaries show current active
+students and today's Care; homework counts include assignments on today's tasks.
+Attention counts are items, not distinct students, and include older corrections.
+Empty classes without homework/attention are omitted. Reads are request-time;
+refresh Today after source actions. No source business rules or schema changed.
+With the local production server on port 3100, `npm run test:today` exercises the
+derived page and resolution through existing Server Actions with retained Test fixtures.
