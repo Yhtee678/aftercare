@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
 import { careActionSchema, type CareResult } from "@/lib/validation/care";
 
 export async function completeCareAction(raw: unknown): Promise<CareResult> {
@@ -9,7 +10,12 @@ export async function completeCareAction(raw: unknown): Promise<CareResult> {
   try {
     const { recordCareAction } = await import("@/db/mutations/care");
     const result = await recordCareAction(parsed.data);
-    revalidatePath(`/care/classes/${parsed.data.schoolClassId}`);
+    // Invalidate the dependent screens. Keeping current Care out of this list avoids
+    // its full roster query in this response; the action returns the saved row.
+    if (result.success) {
+      revalidatePath("/today", "layout");
+      revalidatePath(`/care/classes/${parsed.data.schoolClassId}/print`);
+    }
     return result;
   } catch {
     console.error("Daily Care: action or revalidation failed.");

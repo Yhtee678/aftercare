@@ -5,7 +5,7 @@ import { changeHomeworkStatus } from "@/app/homework/actions";
 import { Button } from "@/components/ui/button";
 import type { HomeworkStatus } from "@/lib/validation/homework";
 
-export function StudentHomeworkRow({ assignment }: { assignment: { id: string; studentName: string; status: HomeworkStatus } }) {
+export function StudentHomeworkRow({ assignment, number, hidden = false }: { number: number; hidden?: boolean; assignment: { id: string; studentName: string; status: HomeworkStatus } }) {
   const [pending, startTransition] = useTransition();
   const busy = useRef(false);
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
@@ -22,8 +22,8 @@ export function StudentHomeworkRow({ assignment }: { assignment: { id: string; s
       finally { busy.current = false; }
     });
   };
-  return <li className={`space-y-3 rounded-xl border p-4 ${completed ? "border-slate-200 bg-slate-50 text-slate-600" : correction ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white"}`}>
-    <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="break-words font-medium">{assignment.studentName}</h3>
+  return <li hidden={hidden} className={`space-y-3 rounded-xl border p-4 ${completed ? "border-slate-200 bg-slate-50 text-slate-600" : correction ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white"}`}>
+    <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="break-words font-medium">{number}. {assignment.studentName}</h3>
       <span className={`text-sm font-medium ${correction ? "text-amber-900" : completed ? "text-green-800" : "text-slate-600"}`}>{completed ? "已完成" : correction ? "需要订正" : "未完成"}</span>
     </div>
     {!completed && <div className="flex flex-wrap gap-2">

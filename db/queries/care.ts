@@ -11,7 +11,7 @@ export async function getCareToday() {
 }
 
 export function getCareStudents(schoolClassId: string, recordDate: string) {
-  return db.select({ studentId: students.id, name: students.name,
+  return db.select({ remark: dailyStudentRecords.remark, studentId: students.id, name: students.name,
     arrivalTime: dailyStudentRecords.arrivalTime, mealCompleted: dailyStudentRecords.mealCompleted,
     showerCompleted: dailyStudentRecords.showerCompleted, bagChecked: dailyStudentRecords.bagChecked,
     finalCheckCompleted: dailyStudentRecords.finalCheckCompleted,

@@ -1,27 +1,36 @@
 "use client";
-import { formatGrade } from "@/lib/ui-labels";
+import { homeworkSubjects, homeworkMaterials } from "@/lib/workflow-display";
+import { homeworkOptionsSchema } from "@/lib/validation/homework-options";
 
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { createHomework } from "@/app/homework/actions";
 import { Button } from "@/components/ui/button";
 import type { SchoolClassOption } from "@/db/queries/school-classes";
 import { homeworkFormSchema, type HomeworkFormValues } from "@/lib/validation/homework";
 
+type FormValues = HomeworkFormValues & { subjectChoice: string; customSubject: string; typeChoice: string; customType: string };
 const inputClass = "mt-2 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-blue-700 aria-invalid:border-red-600";
 export function HomeworkForm({ classes, submissionId, today }: { classes: SchoolClassOption[]; submissionId: string; today: string }) {
   const router = useRouter();
   const saving = useRef(false);
   const formId = useRef(submissionId);
   const [saved, setSaved] = useState(false);
-  const { register, handleSubmit, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<HomeworkFormValues>({
-    defaultValues: { schoolClassId: "", subject: "", description: "", taskType: "", pageFrom: "", pageTo: "", taskDate: today },
+  const { register, handleSubmit, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    defaultValues: { subjectChoice: "", customSubject: "", typeChoice: "", customType: "", schoolClassId: "", subject: "", description: "", taskType: "", pageFrom: "", pageTo: "", taskDate: today },
   });
-  const submit = async (values: HomeworkFormValues) => {
+  const selected = useWatch({ control });
+  const submit = async (raw: FormValues) => {
     clearErrors();
+    const options = homeworkOptionsSchema.safeParse(raw);
+    if (!options.success) {
+      for (const issue of options.error.issues) setError(issue.path[0] as keyof FormValues, { message: issue.message }, { shouldFocus: true });
+      return;
+    }
+    const values = { ...raw, ...options.data };
     const parsed = homeworkFormSchema.safeParse(values);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) setError(issue.path[0] as keyof HomeworkFormValues, { message: issue.message }, { shouldFocus: true });
@@ -47,24 +56,25 @@ export function HomeworkForm({ classes, submissionId, today }: { classes: School
       <div><label htmlFor="schoolClassId" className="text-sm font-medium">学校／班级 *</label>
         <select id="schoolClassId" {...register("schoolClassId")} required className={inputClass} aria-invalid={!!errors.schoolClassId} aria-describedby="class-help class-error">
           <option value="">请选择已启用的班级</option>
-          {classes.map((item) => <option key={item.id} value={item.id}>{item.schoolName} · {item.academicYear} · {formatGrade(item.grade)} · {item.className}</option>)}
+          {classes.map((item) => <option key={item.id} value={item.id}>{item.schoolName} · {item.className}</option>)}
         </select>
         <p id="class-help" className="mt-1 text-sm text-slate-600">保存后将分配给此班级中启用的学生。</p>
         {errors.schoolClassId && <p id="class-error" role="alert" className="text-sm text-red-700">{errors.schoolClassId.message}</p>}
       </div>
+      {([{ choice: "subjectChoice", custom: "customSubject", label: "科目", options: homeworkSubjects, error: errors.subject }, { choice: "typeChoice", custom: "customType", label: "功课类型（选填）", options: homeworkMaterials, error: errors.taskType }] as const).map((field) => <div key={field.choice}>
+        <label htmlFor={field.choice}>{field.label}</label><select id={field.choice} {...register(field.choice)} className={inputClass} aria-invalid={!!field.error}><option value="">请选择</option>{[...field.options, "其他"].map((option) => <option key={option}>{option}</option>)}</select>
+        {selected[field.choice] === "其他" && <><label htmlFor={field.custom} className="mt-2 block text-sm">其他{field.label}</label><input id={field.custom} {...register(field.custom)} maxLength={200} className={inputClass} /></>}
+        {(field.error || errors[field.choice] || errors[field.custom]) && <p role="alert" className="text-red-700">{field.error?.message || errors[field.choice]?.message || errors[field.custom]?.message}</p>}
+      </div>)}
+      <fieldset><legend>页数（选填）</legend><div className="flex items-center gap-3"><input aria-label="起始页数" type="number" min={1} {...register("pageFrom")} className={inputClass} /><span>至</span><input aria-label="结束页数" type="number" min={1} {...register("pageTo")} className={inputClass} /></div>{(errors.pageFrom || errors.pageTo) && <p role="alert" className="text-red-700">{errors.pageFrom?.message || errors.pageTo?.message}</p>}</fieldset>
       {([
-        { name: "subject", label: "科目", type: "text", required: true, maxLength: 200 },
         { name: "description", label: "功课内容", type: "textarea", required: true, maxLength: 5000 },
-        { name: "taskType", label: "功课类型（选填）", type: "text", required: false, maxLength: 200 },
-        { name: "pageFrom", label: "起始页数（选填）", type: "number", required: false },
-        { name: "pageTo", label: "结束页数（选填）", type: "number", required: false },
         { name: "taskDate", label: "功课日期", type: "date", required: true },
       ] as const).map((field) => <div key={field.name}>
         <label htmlFor={field.name} className="text-sm font-medium">{field.label}{field.required ? " *" : ""}</label>
         {field.type === "textarea"
           ? <textarea id={field.name} {...register(field.name)} rows={3} maxLength={field.maxLength} required className={inputClass} aria-invalid={!!errors[field.name]} aria-describedby={`${field.name}-error`} />
           : <input id={field.name} {...register(field.name)} type={field.type} required={field.required} className={inputClass}
-            maxLength={"maxLength" in field ? field.maxLength : undefined} min={field.type === "number" ? 1 : undefined} step={field.type === "number" ? 1 : undefined}
             aria-invalid={!!errors[field.name]} aria-describedby={`${field.name}-error`} />}
         {errors[field.name] && <p id={`${field.name}-error`} role="alert" className="text-sm text-red-700">{errors[field.name]?.message}</p>}
       </div>)}

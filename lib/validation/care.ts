@@ -7,4 +7,5 @@ export const careActionSchema = z.object({
   action: z.enum(["arrival", "mealCompleted", "showerCompleted", "bagChecked", "finalCheckCompleted"]),
 });
 export type CareAction = z.infer<typeof careActionSchema>["action"];
-export type CareResult = { success: true } | { success: false; message: string };
+export type CareState = { arrivalTime: string | null; mealCompleted: boolean; showerCompleted: boolean; bagChecked: boolean; finalCheckCompleted: boolean };
+export type CareResult = { success: true; state: CareState } | { success: false; message: string };

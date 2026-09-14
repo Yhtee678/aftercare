@@ -1,4 +1,3 @@
-
 import { formatGrade } from "@/lib/ui-labels";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -31,8 +30,7 @@ export default async function Page() {
         <summary className="min-h-14 cursor-pointer rounded-xl px-4 py-4 font-semibold focus-visible:outline-2 focus-visible:outline-blue-700">{formatGrade(grade)} <span className="ml-2 text-sm font-normal text-slate-600">{items.length} {items.length === 1 ? "个班级" : "个班级"}</span></summary>
         {items.length ? <ul className="grid gap-3 p-4 pt-0 sm:grid-cols-2">{items.map((item) => <li key={item.id}>
           <Link href={`/dictation/classes/${item.id}`} className="block space-y-2 rounded-lg border border-slate-200 p-4 hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-700">
-            <div className="flex flex-wrap items-center justify-between gap-2"><span className="break-words font-medium">{item.className}</span><span className="text-sm text-slate-600">{item.taskCount} {item.taskCount === 1 ? "项任务" : "项任务"}</span></div>
-            <p className="break-words text-sm text-slate-600">{item.schoolName} · {item.academicYear}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2"><span className="break-words font-medium">{item.schoolName} · {item.className}</span><span className="text-sm text-slate-600">{item.taskCount} {item.taskCount === 1 ? "项任务" : "项任务"}</span></div>
             {(item.status === "INACTIVE" || item.schoolStatus === "INACTIVE") && <p className="text-sm text-slate-500">{item.status === "INACTIVE" ? "班级已停用" : "学校已停用"}</p>}
           </Link>
         </li>)}</ul> : <p className="px-4 pb-4 text-sm text-slate-600">{formatGrade(grade)}暂无班级。</p>}

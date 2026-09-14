@@ -38,6 +38,7 @@ export async function recordCareAction(raw: unknown): Promise<CareResult> {
     } else if (!record[input.action]) {
       await tx.update(dailyStudentRecords).set({ [input.action]: true, updatedAt: sql`now()` }).where(eq(dailyStudentRecords.id, record.id));
     }
-    return { success: true };
+    const [saved] = await tx.select().from(dailyStudentRecords).where(key);
+    return { success: true, state: { arrivalTime: saved.arrivalTime?.toISOString() ?? null, mealCompleted: saved.mealCompleted, showerCompleted: saved.showerCompleted, bagChecked: saved.bagChecked, finalCheckCompleted: saved.finalCheckCompleted } };
   });
 }

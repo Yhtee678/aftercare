@@ -39,7 +39,7 @@ export function getDictationTasks(schoolClassId: string) {
   const total = sql<number>`count(${studentDictation.id})::integer`;
   const completed = sql<number>`count(${studentDictation.id}) filter (where ${studentDictation.status} = 'COMPLETED')::integer`;
   const corrections = sql<number>`count(${studentDictation.id}) filter (where ${studentDictation.status} = 'NEEDS_PRACTICE')::integer`;
-  return db.select({ id: dictationTasks.id, type: dictationTasks.type, source: dictationTasks.source, description: dictationTasks.description,
+  return db.select({ id: dictationTasks.id, contentFormat: dictationTasks.contentFormat, type: dictationTasks.type, source: dictationTasks.source, description: dictationTasks.description,
     assignedDate: dictationTasks.assignedDate, scheduledDate: dictationTasks.scheduledDate,
     ...context, total, completed, corrections,
   }).from(dictationTasks)

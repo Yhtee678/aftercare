@@ -1,11 +1,11 @@
 "use client";
-import { formatGrade } from "@/lib/ui-labels";
+import { DictationContent } from "./dictation-content";
 
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { createDictation } from "@/app/dictation/actions";
 import { Button } from "@/components/ui/button";
 import type { SchoolClassOption } from "@/db/queries/school-classes";
@@ -17,9 +17,10 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
   const formId = useRef(submissionId);
   const busy = useRef(false);
   const [saved, setSaved] = useState(false);
-  const { register, handleSubmit, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<DictationFormValues>({ defaultValues: {
-    schoolClassId: classId, source: "SCHOOL", type: "DICTATION", description: "", assignedDate: today, scheduledDate: today,
+  const { register, handleSubmit, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<DictationFormValues>({ defaultValues: {
+    contentFormat: "NUMBERED", schoolClassId: classId, source: "SCHOOL", type: "DICTATION", description: "", assignedDate: today, scheduledDate: today,
   } });
+  const [description, contentFormat] = useWatch({ control, name: ["description", "contentFormat"] });
   const submit = async (values: DictationFormValues) => {
     clearErrors();
     const parsed = dictationFormSchema.safeParse(values);
@@ -35,7 +36,7 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
     } catch { setError("root", { message: "暂时无法确认保存结果，请使用此表单重试。" }); }
   };
   const selects = [
-    { name: "schoolClassId", label: "学校／班级", options: [{ value: "", label: "请选择已启用的班级" }, ...classes.map((item) => ({ value: item.id, label: `${item.schoolName} · ${item.academicYear} · ${formatGrade(item.grade)} · ${item.className}` }))] },
+    { name: "schoolClassId", label: "学校／班级", options: [{ value: "", label: "请选择已启用的班级" }, ...classes.map((item) => ({ value: item.id, label: `${item.schoolName} · ${item.className}` }))] },
     { name: "source", label: "来源", options: dictationSources.map((value) => ({ value, label: dictationSourceLabels[value] })) },
     { name: "type", label: "类型", options: dictationTypes.map((value) => ({ value, label: dictationTypeLabels[value] })) },
   ] as const;
@@ -54,10 +55,12 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
           {field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>{errors[field.name] && <p id={`${field.name}-error`} role="alert" className="text-sm text-red-700">{errors[field.name]?.message}</p>}
       </div>)}
+      <div><label htmlFor="contentFormat">内容模式</label><select id="contentFormat" {...register("contentFormat")} className={inputClass}><option value="NUMBERED">编号模式（每行一项）</option><option value="PLAIN">纯文字模式</option></select></div>
       <div><label htmlFor="description" className="text-sm font-medium">内容 *</label>
         <textarea id="description" {...register("description")} required rows={3} maxLength={5000} className={inputClass} aria-invalid={!!errors.description} aria-describedby="description-error" />
         {errors.description && <p id="description-error" role="alert" className="text-sm text-red-700">{errors.description.message}</p>}
       </div>
+      <div className="rounded-lg border p-3"><p className="mb-2 text-sm text-slate-600">内容预览</p><DictationContent text={description} format={contentFormat} /></div>
       {(["assignedDate", "scheduledDate"] as const).map((name) => <div key={name}><label htmlFor={name} className="text-sm font-medium">{name === "assignedDate" ? "安排日期" : "听写日期"} *</label>
         <input id={name} {...register(name)} type="date" required className={inputClass} aria-invalid={!!errors[name]} aria-describedby={`${name}-error`} />
         {errors[name] && <p id={`${name}-error`} role="alert" className="text-sm text-red-700">{errors[name]?.message}</p>}

@@ -11,6 +11,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:check": "drizzle-kit check",
     "db:seed": "tsx db/seed.ts",
+    "test:workflow": "tsx --test tests/workflow-display.test.ts tests/homework-validation.test.ts tests/care-validation.test.ts tests/dictation-validation.test.ts",
     "test:students": "tsx --test tests/student-validation.test.ts",
     "test:schools": "tsx --test tests/school-validation.test.ts",
     "test:classes": "tsx --test tests/school-class-validation.test.ts",

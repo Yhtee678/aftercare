@@ -1,0 +1,2 @@
+ALTER TABLE "dictation_tasks" ADD COLUMN "content_format" text DEFAULT 'PLAIN' NOT NULL;--> statement-breakpoint
+ALTER TABLE "dictation_tasks" ADD CONSTRAINT "dictation_tasks_content_format_check" CHECK ("content_format" IN ('NUMBERED', 'PLAIN'));

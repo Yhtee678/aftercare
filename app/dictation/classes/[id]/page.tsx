@@ -31,8 +31,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return <div className="space-y-6">
     <Link href="/dictation" className="inline-flex min-h-12 items-center text-blue-700 underline">返回年级与班级</Link>
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="break-words text-2xl font-semibold">{schoolClass.className} 听写</h1>
-        <p className="mt-2 break-words text-sm text-slate-600">{schoolClass.schoolName} · {schoolClass.academicYear} · {formatGrade(schoolClass.grade)}</p>
+      <div><h1 className="break-words text-2xl font-semibold">{schoolClass.schoolName} · {schoolClass.className}</h1>
+        <p className="mt-2 break-words text-sm text-slate-600">{formatGrade(schoolClass.grade)}</p>
         <p className="mt-2 text-sm text-slate-600">优先显示未完成任务，并按听写日期由近到远排列。包含所有日期。</p>
       </div>
     </div>

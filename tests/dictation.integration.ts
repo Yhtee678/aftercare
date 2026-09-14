@@ -83,7 +83,7 @@ async function run() {
     await assert.rejects(db.insert(studentDictation).values({ studentId: assigned[0].studentId, dictationTaskId: id }));
     await assert.rejects(db.insert(dictationTasks).values({ scope: "CLASS", schoolClassId: classIds[0], studentId: studentIds[0], description: "Test invalid scope", ...taskValues }));
     await assert.rejects(db.insert(dictationTasks).values({ scope: "CLASS", schoolClassId: classIds[0], description: "Test invalid dates", ...taskValues, scheduledDate: yesterday }));
-    assert.ok((await html("/today")).includes(`data-attention-id="${assigned[0].id}"`));
+    assert.ok((await html("/today/grades/4")).includes(`data-attention-id="${assigned[0].id}"`));
     assert.equal((await invoke("changeDictationStatus", { id: assigned[0].id, status: "COMPLETED" })).success, true);
     let current = await readAssignments();
     assert.deepEqual(current[1], assigned[1]);
@@ -103,7 +103,7 @@ async function run() {
     current = await readAssignments();
     assert.ok(current.every((item) => item.status === "COMPLETED"));
     assert.ok(current.every((item) => item.verifiedAt !== null));
-    assert.ok(!(await html("/today")).includes(`data-attention-id="${assigned[0].id}"`));
+    assert.ok(!(await html("/today/grades/4")).includes(`data-attention-id="${assigned[0].id}"`));
     const extraTaskIds: string[] = [];
     const extraAssignmentIds: string[] = [];
     for (const scheduledDate of [yesterday, today, nextCalendarDate(today), nextCalendarDate(nextCalendarDate(today))]) {
@@ -113,12 +113,12 @@ async function run() {
       const [row] = await db.select().from(studentDictation).where(eq(studentDictation.dictationTaskId, submissionId));
       extraAssignmentIds.push(row.id);
     }
-    const todayHtml = await html("/today");
+    const todayHtml = await html("/today/grades/4");
     for (const attentionId of extraAssignmentIds.slice(0, 3)) assert.ok(todayHtml.includes(`data-attention-id="${attentionId}"`));
     assert.ok(!todayHtml.includes(`data-attention-id="${extraAssignmentIds[3]}"`));
     assert.ok(todayHtml.indexOf(`data-attention-id="${extraAssignmentIds[0]}"`) < todayHtml.indexOf(`data-attention-id="${extraAssignmentIds[2]}"`));
     assert.equal((await invoke("changeDictationStatus", { id: extraAssignmentIds[0], status: "COMPLETED" })).success, true);
-    assert.ok(!(await html("/today")).includes(`data-attention-id="${extraAssignmentIds[0]}"`));
+    assert.ok(!(await html("/today/grades/4")).includes(`data-attention-id="${extraAssignmentIds[0]}"`));
     assert.ok((await html(`/dictation/${id}`)).includes("0 未完成"));
     const browsing = await html("/dictation");
     for (let grade = 1; grade <= 6; grade++) assert.ok(browsing.includes(`年级 ${grade}`));

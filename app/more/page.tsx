@@ -24,7 +24,7 @@ export default function Page() {
               <ChevronRight aria-hidden="true" className="ml-auto size-4 text-slate-400" />
             </Link>
           </li>
-          {navigationItems.filter((item) => !item.mobile).map(({ href, label, icon: Icon }) => (
+          {navigationItems.filter((item) => !item.mobile && item.href !== "/dictation").map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link href={href} className="flex min-h-14 items-center gap-3 px-4 py-4 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-700">
                 <Icon aria-hidden="true" className="size-5" />

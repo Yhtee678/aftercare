@@ -19,7 +19,7 @@ export function getHomeworkTasks(schoolClassId: string) {
   const total = sql<number>`count(${studentHomework.id})::integer`;
   const completed = sql<number>`count(${studentHomework.id}) filter (where ${studentHomework.status} = 'COMPLETED')::integer`;
   const corrections = sql<number>`count(${studentHomework.id}) filter (where ${studentHomework.status} = 'CORRECTION_REQUIRED')::integer`;
-  return db.select({ id: homeworkTasks.id, subject: homeworkTasks.subject, description: homeworkTasks.description,
+  return db.select({ id: homeworkTasks.id, subject: homeworkTasks.subject, taskType: homeworkTasks.taskType, description: homeworkTasks.description,
     taskDate: homeworkTasks.taskDate, pageFrom: homeworkTasks.pageFrom, pageTo: homeworkTasks.pageTo,
     ...context, total, completed, corrections,
   }).from(homeworkTasks)

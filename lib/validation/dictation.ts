@@ -9,6 +9,7 @@ export const dictationFormSchema = z.object({
   schoolClassId: z.uuid("请选择已启用的班级。"),
   source: z.enum(dictationSources),
   type: z.enum(dictationTypes),
+  contentFormat: z.enum(["NUMBERED", "PLAIN"]).default("PLAIN"),
   description: z.string().trim().min(1, "请填写听写内容。").max(5000),
   assignedDate: z.iso.date("请填写有效的安排日期。"),
   scheduledDate: z.iso.date("请填写有效的听写日期。"),

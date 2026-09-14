@@ -128,3 +128,14 @@
     @apply font-sans;
   }
 }
+
+@page { size: A4 landscape; margin: 8mm; }
+@media print {
+  body { background: white !important; color: black !important; }
+  .daily-sheet { font-size: 10px; }
+  .daily-sheet table { table-layout: fixed; font-size: 9px; }
+  .daily-sheet th, .daily-sheet td { padding: 4px 2px; overflow-wrap: anywhere; color: black; border-color: #555; }
+  .daily-sheet th:nth-child(2), .daily-sheet th:nth-child(3), .daily-sheet th:last-child { width: 10%; }
+  .daily-sheet thead { display: table-header-group; }
+  .daily-sheet tr { break-inside: avoid; }
+}

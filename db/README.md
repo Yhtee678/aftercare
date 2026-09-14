@@ -307,3 +307,53 @@ Completion revalidates Dictation and Today. No attention table or new dependency
 Run `npm run test:dictation`; after migration approval and a built server on port
 3100, run `npm run test:dictation:integration` and `npm run test:today`. Integration
 tests retain fictional Test fixtures and preserve existing data.
+
+## Daily workflow display and printing
+
+Today now opens at grade totals, then grade attention/classes, then the class roster.
+Counts remain derived; attention still includes unresolved historical work. Student
+search and numbering are display-only. Operational class labels use school + class.
+
+`dictation_tasks.content_format` is constrained to NUMBERED/PLAIN. Old rows default
+to PLAIN; new forms default to NUMBERED. Description remains ordinary text, with
+nonempty lines numbered only when rendered. The format participates in retry identity.
+The generated migration must be approved before applying or deploying this change.
+Homework subject/material choices resolve to existing text columns, including custom Other.
+
+Care uses a temporary optimistic patch, reverting on failure and accepting the
+server's saved row on success. Arrival previews are replaced by PostgreSQL time.
+Existing locks, day/active-state checks and idempotency remain. Dependent Today/print
+routes are invalidated; current Care receives the row without a whole-roster response.
+This uses Next 16's documented Server Action invalidation of visited router pages.
+All operational reads remain request-time, with no persistent data cache.
+
+Class cards and the print sheet share `getDailyClassStudents`. Relevant homework is
+today's assignments plus any unresolved correction; dictation is today/tomorrow plus
+overdue unresolved work. Green/all done means arrival + bag check + final check and
+all these assignments completed. This is a display summary, not release permission
+or a new prerequisite for the standalone Final Check action. Red indicates correction,
+near-due unresolved dictation or an unchecked bag after arrival; otherwise gray before
+arrival and amber while work remains. No completion flag is stored.
+
+`/care/classes/[id]/print` uses the current active roster and native A4-landscape
+printing/Save as PDF. Column mapping, in official order:
+
+| Columns | Source |
+| --- | --- |
+| No., 姓名, 学校, 班级 | Display sequence and current roster; differing first-record context is noted |
+| 到班, 吃饭, 书包, 冲凉 | Today's daily record; arrival shown in Malaysia time |
+| 听写 | Relevant dictation completed/total |
+| 补做功课 | —; no persisted make-up-work classification exists |
+| 需订正X | Relevant homework CORRECTION_REQUIRED count |
+| 听写（学 \| 补） | Relevant dictation completed/total separately for SCHOOL and TUITION |
+| all done | The derived completion rule above |
+| 功课 | Relevant homework completed/total |
+| 备注 | Daily record remark plus a differing historical class context, if any |
+
+No photo is uploaded or persisted. A single local File/object URL is used for preview
+and user-initiated system sharing, revoked on replacement, closing, pagehide/unmount.
+Unsupported browsers show selectable context and instructions to share the original
+photo from the device. No messaging API, photo storage, parent contact or release flow.
+Run `npm run test:workflow` for database-free focused coverage. Existing integration
+suites write retained Test fixtures and require separate authorization; do not run
+them during a no-data-changes pass.

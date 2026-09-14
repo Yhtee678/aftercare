@@ -23,7 +23,7 @@ async function run() {
     }
     throw new Error("Missing action response.");
   };
-  const html = async () => (await (await fetch(`${base}/today`)).text()).replace(/<!--[\s\S]*?-->/g, "");
+  const html = async () => (await Promise.all([1, 2].map(async (grade) => (await (await fetch(`${base}/today/grades/${grade}`)).text()).replace(/<!--[\s\S]*?-->/g, "")))).join("\n");
   const { db } = await import("../db/connection");
   try {
     const originalHomework = await db.select().from(studentHomework).orderBy(asc(studentHomework.id));
@@ -58,7 +58,7 @@ async function run() {
     let page = await html();
     assert.ok(page.includes(today));
     const attentionIds = (content: string) => [...content.matchAll(/data-attention-id="([^"]+)"/g)].map((match) => match[1]);
-    const expected = [assignmentIds[0], assignmentIds[1], dailyIds[0], dailyIds[3]];
+    const expected = [assignmentIds[0], dailyIds[0], assignmentIds[1], dailyIds[3]];
     assert.deepEqual(attentionIds(page).filter((id) => assignmentIds.includes(id) || dailyIds.includes(id)), expected);
     assert.deepEqual(attentionIds(await html()), attentionIds(page));
     assert.ok(page.includes(`/homework/${taskIds[1]}`) && page.includes(`/care/classes/${classIds[0]}`));

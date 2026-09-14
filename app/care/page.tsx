@@ -28,7 +28,7 @@ export default async function Page() {
         <summary className="min-h-14 cursor-pointer rounded-xl p-4 font-semibold focus-visible:outline-2 focus-visible:outline-blue-700">{formatGrade(grade)} <span className="ml-2 text-sm font-normal text-slate-600">{items.length} {items.length === 1 ? "个班级" : "个班级"}</span></summary>
         {items.length ? <ul className="grid gap-3 p-4 pt-0 sm:grid-cols-2">{items.map((item) => <li key={item.id}>
           <Link href={`/care/classes/${item.id}`} className="block space-y-2 rounded-lg border border-slate-200 p-4 hover:border-blue-300 focus-visible:outline-2 focus-visible:outline-blue-700">
-            <span className="break-words font-medium">{item.className}</span><p className="break-words text-sm text-slate-600">{item.schoolName} · {item.academicYear}</p>
+            <span className="break-words font-medium">{item.schoolName} · {item.className}</span>
           </Link>
         </li>)}</ul> : <p className="px-4 pb-4 text-sm text-slate-600">{formatGrade(grade)}暂无启用的班级。</p>}
       </details>;

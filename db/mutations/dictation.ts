@@ -7,7 +7,7 @@ import { canChangeDictationStatus, createDictationSchema, changeDictationStatusS
 
 function matches(task: typeof dictationTasks.$inferSelect, input: CreateDictationInput) {
   return task.scope === "CLASS" && task.schoolClassId === input.schoolClassId
-    && task.type === input.type && task.description === input.description && task.source === input.source
+    && task.contentFormat === input.contentFormat && task.type === input.type && task.description === input.description && task.source === input.source
     && task.assignedDate === input.assignedDate && task.scheduledDate === input.scheduledDate;
 }
 
@@ -31,7 +31,7 @@ export async function insertClassDictation(raw: unknown): Promise<DictationResul
     if (!roster.length) return { success: false, message: "此班级暂无启用的学生，请先添加学生再分配听写。" };
     await tx.insert(dictationTasks).values({
       id: input.submissionId, scope: "CLASS", schoolClassId: input.schoolClassId,
-      type: input.type, description: input.description, source: input.source,
+      contentFormat: input.contentFormat, type: input.type, description: input.description, source: input.source,
       assignedDate: input.assignedDate, scheduledDate: input.scheduledDate,
     });
     await tx.insert(studentDictation).values(roster.map((student) => ({

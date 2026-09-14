@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { homeworkIdSchema } from "@/lib/validation/homework";
 import { HomeworkSummary } from "@/components/homework/homework-summary";
 import { HomeworkLoadError } from "@/components/homework/homework-load-error";
-import { StudentHomeworkRow } from "@/components/homework/student-homework-row";
+import { AssignmentStudentList } from "@/components/students/assignment-student-list";
 
 export const metadata: Metadata = { title: "功课详情" };
 export default async function Page({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -31,7 +31,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     <section className="space-y-3" aria-labelledby="assigned-heading">
       <h2 id="assigned-heading" className="text-lg font-semibold">已分配学生</h2>
       <p className="text-sm text-slate-600">{completed} / {data.assignments.length} 已完成 · {data.assignments.length - completed} 未完成。老师确认全部完成后，方可标记完成。</p>
-      {data.assignments.length ? <ul className="space-y-3">{data.assignments.map((assignment) => <StudentHomeworkRow key={assignment.id} assignment={assignment} />)}</ul> : <p>此任务尚未分配学生。</p>}
+      <AssignmentStudentList kind="homework" assignments={data.assignments} />
     </section>
   </div>;
 }

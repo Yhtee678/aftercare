@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { dictationIdSchema } from "@/lib/validation/dictation";
+import { dictationSourceLabels, dictationTypeLabels, dictationIdSchema } from "@/lib/validation/dictation";
 import { DictationSummary } from "@/components/dictation/dictation-summary";
 import { DictationLoadError } from "@/components/dictation/dictation-load-error";
-import { StudentDictationRow } from "@/components/dictation/student-dictation-row";
+import { AssignmentStudentList } from "@/components/students/assignment-student-list";
 
 export const metadata: Metadata = { title: "听写详情" };
 export default async function Page({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -32,7 +32,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     <section className="space-y-3" aria-labelledby="assigned-heading">
       <h2 id="assigned-heading" className="text-lg font-semibold">已分配学生</h2>
       <p className="text-sm text-slate-600">{completed} / {data.assignments.length} 已完成 · {data.assignments.length - completed} 未完成。老师确认全部完成后，方可标记完成。</p>
-      {data.assignments.length ? <ul className="space-y-3">{data.assignments.map((assignment) => <StudentDictationRow key={assignment.id} assignment={assignment} />)}</ul> : <p>此任务尚未分配学生。</p>}
+      <AssignmentStudentList kind="dictation" assignments={data.assignments} context={`${data.task.schoolName ?? ""} · ${data.task.className ?? "个人听写"}\n${dictationSourceLabels[data.task.source]}${dictationTypeLabels[data.task.type]} · ${data.task.scheduledDate.split("-").reverse().join("/")}`} />
     </section>
   </div>;
 }

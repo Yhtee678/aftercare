@@ -1,5 +1,5 @@
 "use client";
-import { formatGrade } from "@/lib/ui-labels";
+
 
 
 import Link from "next/link";
@@ -74,9 +74,9 @@ export function StudentForm({ classes, initialValues, saveAction, successHref, c
           <label htmlFor="school-class" className="text-sm font-medium">班级 <span aria-hidden="true">*</span></label>
           <select id="school-class" defaultValue={initialValues?.schoolClassId ?? ""} {...register("schoolClassId")} required className={inputClass} aria-invalid={!!errors.schoolClassId} aria-describedby="class-help class-error">
             <option value="">请选择班级</option>
-            {classes.map((option) => <option key={option.id} value={option.id}>{option.schoolName} · {option.academicYear} · {formatGrade(option.grade)} · {option.className}</option>)}
+            {classes.map((option) => <option key={option.id} value={option.id}>{option.schoolName} · {option.className}</option>)}
           </select>
-          <p id="class-help" className="mt-1 text-xs leading-5 text-slate-600">学校 · 学年 · 年级 · 班级。仅显示已启用的班级。</p>
+          <p id="class-help" className="mt-1 text-xs leading-5 text-slate-600">学校 · 班级。仅显示已启用的班级。</p>
           <p id="class-error" role={errors.schoolClassId ? "alert" : undefined} className="mt-1 text-sm text-red-700">{errors.schoolClassId?.message}</p>
         </div>
         {([

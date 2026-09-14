@@ -1,9 +1,9 @@
 
-import { formatGrade } from "@/lib/ui-labels";
+import { StudentList } from "@/components/students/student-list";
 import type { Metadata } from "next";
 import { connection } from "next/server";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+
+
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { z } from "zod";
@@ -46,30 +46,7 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
       {created.success && studentList.some((student) => student.id === created.data) && (
         <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">学生已添加。</p>
       )}
-      {studentList.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">暂无学生。</p>
-      ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {studentList.map((student) => (
-            <li key={student.id}>
-              <Link href={`/students/${student.id}`} className="block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
-              <Card className="h-full shadow-none hover:border-blue-300">
-                <CardContent className="space-y-3">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h2 className="min-w-0 break-words text-base font-medium">{student.name}</h2>
-                    <Badge variant="secondary" className={student.status === "ACTIVE" ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}>
-                      {student.status === "ACTIVE" ? "启用中" : "已停用"}
-                    </Badge>
-                  </div>
-                  <p className="break-words text-sm text-slate-600">{student.schoolName}</p>
-                  <p className="text-sm text-slate-600">{formatGrade(student.grade)} · {student.className}</p>
-                </CardContent>
-              </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <StudentList students={studentList} />
     </div>
   );
 }
