@@ -3,6 +3,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { getCareToday } from "./care";
+import { getDueDictations } from "./dictation";
 
 type Context = { id: string; studentName: string; classId: string; className: string; schoolName: string; grade: number; academicYear: number };
 type Correction = Context & { taskId: string; subject: string; description: string; pageFrom: number | null; pageTo: number | null; taskDate: string };
@@ -13,7 +14,7 @@ type ClassSummary = { id: string; className: string; schoolName: string; grade: 
 export async function getTodayOverview() {
   const today = await getCareToday();
   // Separate aggregates prevent roster × homework joins from multiplying counts.
-  const [corrections, bags, classes] = await Promise.all([
+  const [corrections, bags, classes, dictations] = await Promise.all([
     db.execute<Correction>(sql`
       select sh.id, s.name as "studentName", c.id as "classId", c.class_name as "className",
         sc.name as "schoolName", c.grade, c.academic_year as "academicYear",
@@ -56,10 +57,13 @@ export async function getTodayOverview() {
       where c.status = 'ACTIVE' and sc.status = 'ACTIVE'
       order by c.grade, c.class_name, sc.name, c.academic_year, c.id
     `),
+    getDueDictations(today),
   ]);
   const attentionCounts = new Map<string, number>();
-  for (const item of [...corrections, ...bags]) attentionCounts.set(item.classId, (attentionCounts.get(item.classId) ?? 0) + 1);
-  return { today, corrections: [...corrections], bags: [...bags], classes: classes.map((item) => ({
-    ...item, attentionCount: attentionCounts.get(item.id) ?? 0,
+  const dictationCounts = new Map<string, number>();
+  for (const item of dictations) dictationCounts.set(item.classId, (dictationCounts.get(item.classId) ?? 0) + 1);
+  for (const item of [...corrections, ...bags, ...dictations]) attentionCounts.set(item.classId, (attentionCounts.get(item.classId) ?? 0) + 1);
+  return { today, dueDictations: dictations.filter((item) => item.scheduledDate <= today), nextDictations: dictations.filter((item) => item.scheduledDate > today), corrections: [...corrections], bags: [...bags], classes: classes.map((item) => ({
+    ...item, attentionCount: attentionCounts.get(item.id) ?? 0, dictationCount: dictationCounts.get(item.id) ?? 0,
   })).filter((item) => item.activeStudents || item.homeworkTotal || item.attentionCount) };
 }

@@ -276,3 +276,34 @@ Empty classes without homework/attention are omitted. Reads are request-time;
 refresh Today after source actions. No source business rules or schema changed.
 With the local production server on port 3100, `npm run test:today` exercises the
 derived page and resolution through existing Server Actions with retained Test fixtures.
+
+## Dictation
+
+`dictation_tasks` stores one CLASS/INDIVIDUAL definition; `student_dictation`
+stores unique student/task assignments. Source is SCHOOL/TUITION; types are
+DICTATION, SPELLING, EJAAN, MEMORIZATION (默写), RENCANA. Scope/date CHECKs enforce
+exactly the matching target and scheduled date ≥ assigned date. Restrictive FKs
+preserve history. Class/scheduled-date, scheduled-date and assignment/task indexes
+support browsing, due attention and rosters. Staff/verifier identity is deferred.
+
+Class creation locks/rechecks active class/school/students and inserts task plus
+assignments atomically. Empty rosters fail. Per-form UUIDs serialize retries;
+matching retries return the existing task, changed payloads fail. PENDING can become
+NEEDS_PRACTICE or COMPLETED; NEEDS_PRACTICE can become COMPLETED (same-state retry
+is a no-op). Completed rows reject changes. Only completion sets `verified_at`;
+changed rows use PostgreSQL `now()`. Scores/mistakes/signatures remain on paper.
+
+More → Dictation supports Grade/Class browsing, creation, detail and checking.
+Inactive classes keep historical tasks. Unresolved tasks sort first, earliest
+scheduled date first. The shared Care clock supplies Malaysia's date; next day
+means next calendar day, including weekends. Individual entry, calendars, recurring
+tasks and editing/deleting definitions remain deferred.
+
+Today derives unresolved Dictation scheduled through tomorrow without date/status
+history being discarded. Priority is due/overdue Dictation, Homework correction,
+tomorrow Dictation, then unchecked bags; within groups use grade/class/student and
+stable ID tie-breakers. Near-due Dictation counts reuse those attention rows.
+Completion revalidates Dictation and Today. No attention table or new dependency.
+Run `npm run test:dictation`; after migration approval and a built server on port
+3100, run `npm run test:dictation:integration` and `npm run test:today`. Integration
+tests retain fictional Test fixtures and preserve existing data.

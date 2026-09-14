@@ -4,3 +4,4 @@ export { schoolClasses } from "./school-classes";
 export { students } from "./students";
 export { homeworkScope, homeworkStatus, homeworkTasks, studentHomework } from "./homework";
 export { dailyStudentRecords } from "./daily-student-records";
+export { dictationScope, dictationType, dictationSource, dictationStatus, dictationTasks, studentDictation } from "./dictation";

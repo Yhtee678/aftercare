@@ -14,8 +14,8 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
       <ul className={mobile ? "grid grid-cols-5 gap-1" : "space-y-1"}>
         {navigationItems.filter((item) => !mobile || item.mobile).map((item) => {
           const current = matches(item.href);
-          const active = current || (mobile && item.href === "/more" &&
-            navigationItems.some((section) => !section.mobile && matches(section.href)));
+          const active = current || (item.href === "/more" && (matches("/dictation") || (mobile &&
+            navigationItems.some((section) => !section.mobile && matches(section.href)))));
           const Icon = item.icon;
           return (
             <li key={item.href} className="min-w-0">

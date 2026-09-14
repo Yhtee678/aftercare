@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { randomUUID } from "node:crypto";
+import { connection } from "next/server";
+import { DictationForm } from "@/components/dictation/dictation-form";
+import { DictationLoadError } from "@/components/dictation/dictation-load-error";
+
+export const metadata: Metadata = { title: "Add Dictation" };
+export default async function Page({ searchParams }: { searchParams: Promise<{ classId?: string }> }) {
+  await connection();
+  let classes;
+  let today;
+  try {
+    const { getActiveSchoolClasses } = await import("@/db/queries/school-classes");
+    const { getCareToday } = await import("@/db/queries/care");
+    [classes, today] = await Promise.all([getActiveSchoolClasses(), getCareToday()]);
+  } catch {
+    console.error("Add Dictation: class/date query failed.");
+    return <DictationLoadError href="/dictation/new" />;
+  }
+  const requestedClass = (await searchParams).classId;
+  const classId = classes.find((item) => item.id === requestedClass)?.id ?? "";
+  return <div className="max-w-2xl space-y-6"><Link href="/dictation" className="inline-flex min-h-12 items-center text-blue-700 underline">Back to Dictation</Link><h1 className="text-2xl font-semibold">Add Dictation</h1>
+    {classes.length ? <DictationForm classes={classes} submissionId={randomUUID()} today={today} classId={classId} /> : <p>No active classes are available. Add an active school and class in More first.</p>}
+  </div>;
+}
