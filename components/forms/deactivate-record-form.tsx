@@ -18,16 +18,16 @@ export function DeactivateRecordForm({ name, label, description, successMessage,
       if (result.success) router.replace(successHref(result.id));
       return result;
     } catch {
-      return { success: false, message: "Unable to confirm deactivation. Please try again; repeating it is safe." };
+      return { success: false, message: "暂时无法确认停用结果，请重试，重复操作不会影响原有记录。" };
     }
   }, null);
 
   return <details ref={details} className="rounded-xl border border-slate-200 bg-white p-4">
     <summary className="min-h-12 cursor-pointer content-center rounded-lg text-sm font-medium focus-visible:outline-2 focus-visible:outline-blue-700">{label}</summary>
     <form action={formAction} className="space-y-4 pt-3">
-      <p className="break-words font-medium">Deactivate {name}?</p>
+      <p className="break-words font-medium">确定停用“{name}”？</p>
       <p className="text-sm leading-6 text-slate-600">{description}</p>
-      <noscript><p>Enable JavaScript to confirm deactivation.</p></noscript>
+      <noscript><p>请启用 JavaScript 以确认停用。</p></noscript>
       {result && !result.success && <p role="alert" className="text-sm text-red-700">{result.message}</p>}
       {result?.success && <p role="status" className="text-sm text-green-800">{successMessage}</p>}
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -36,9 +36,9 @@ export function DeactivateRecordForm({ name, label, description, successMessage,
             details.current.open = false;
             details.current.querySelector("summary")?.focus();
           }
-        }}>Cancel</Button>
+        }}>取消</Button>
         <Button type="submit" name="confirmed" value="yes" disabled={pending || !!result?.success} className="min-h-12 bg-slate-800 text-white hover:bg-slate-900">
-          {pending ? "Deactivating…" : "Confirm deactivation"}
+          {pending ? "正在停用…" : "确认停用"}
         </Button>
       </div>
     </form>

@@ -14,7 +14,7 @@ function matches(task: typeof homeworkTasks.$inferSelect, input: CreateHomeworkI
 
 export async function insertClassHomework(raw: unknown): Promise<HomeworkResult> {
   const parsed = createHomeworkSchema.safeParse(raw);
-  if (!parsed.success) return { success: false, message: "Check the homework details and try again." };
+  if (!parsed.success) return { success: false, message: "请检查功课内容后重试。" };
   const input = parsed.data;
   return db.transaction(async (tx) => {
     // Serialize retries of this form, including a retry after the first response was lost.
@@ -22,14 +22,14 @@ export async function insertClassHomework(raw: unknown): Promise<HomeworkResult>
     const [existing] = await tx.select().from(homeworkTasks).where(eq(homeworkTasks.id, input.submissionId));
     if (existing) return matches(existing, input)
       ? { success: true, id: existing.id }
-      : { success: false, message: "This form was already saved with different details. Open Add Homework again." };
+      : { success: false, message: "此表单已保存其他资料，请重新打开“添加功课”。" };
     const [schoolClass] = await tx.select({ id: schoolClasses.id }).from(schoolClasses)
       .innerJoin(schools, eq(schoolClasses.schoolId, schools.id))
       .where(and(eq(schoolClasses.id, input.schoolClassId), eq(schoolClasses.status, "ACTIVE"), eq(schools.status, "ACTIVE"))).for("share");
-    if (!schoolClass) return { success: false, message: "This class or school is inactive or unavailable. Choose an active class." };
+    if (!schoolClass) return { success: false, message: "此班级或学校已停用或不可用，请选择已启用的班级。" };
     const roster = await tx.select({ id: students.id }).from(students)
       .where(and(eq(students.schoolClassId, schoolClass.id), eq(students.status, "ACTIVE"))).for("share");
-    if (!roster.length) return { success: false, message: "This class has no active students. Add an active student before assigning homework." };
+    if (!roster.length) return { success: false, message: "此班级暂无启用的学生，请先添加学生再分配功课。" };
     await tx.insert(homeworkTasks).values({
       id: input.submissionId, scope: "CLASS", schoolClassId: input.schoolClassId,
       subject: input.subject, description: input.description, taskType: input.taskType,
@@ -44,12 +44,12 @@ export async function insertClassHomework(raw: unknown): Promise<HomeworkResult>
 
 export async function updateHomeworkStatus(raw: unknown): Promise<HomeworkResult> {
   const parsed = changeHomeworkStatusSchema.safeParse(raw);
-  if (!parsed.success) return { success: false, message: "Invalid homework update." };
+  if (!parsed.success) return { success: false, message: "功课更新无效。" };
   const input = parsed.data;
   return db.transaction(async (tx) => {
     const [existing] = await tx.select().from(studentHomework).where(eq(studentHomework.id, input.id)).for("update");
-    if (!existing) return { success: false, message: "This student assignment is unavailable. Refresh and try again." };
-    if (!canChangeHomeworkStatus(existing.status, input.status)) return { success: false, message: "This homework has already been checked or changed. Refresh to see its current status." };
+    if (!existing) return { success: false, message: "找不到此学生的任务，请刷新后重试。" };
+    if (!canChangeHomeworkStatus(existing.status, input.status)) return { success: false, message: "此功课已检查或已更新，请刷新查看目前状态。" };
     await tx.update(studentHomework).set({ status: input.status, checkedAt: sql`now()`, updatedAt: sql`now()` })
       .where(and(eq(studentHomework.id, existing.id), eq(studentHomework.status, existing.status)));
     return { success: true, id: existing.homeworkTaskId };

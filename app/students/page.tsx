@@ -1,3 +1,5 @@
+
+import { formatGrade } from "@/lib/ui-labels";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +8,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { z } from "zod";
 
-export const metadata: Metadata = { title: "Students" };
+export const metadata: Metadata = { title: "学生" };
 
 export default async function Page({ searchParams }: PageProps<"/students">) {
   await connection();
@@ -21,11 +23,11 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
     console.error("Students page: unable to load the student/class/school query.");
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
-        <p role="alert" className="text-sm text-slate-600">Unable to load students. Please try again.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">学生</h1>
+        <p role="alert" className="text-sm text-slate-600">暂时无法加载学生，请重试。</p>
         {/* A full reload retries the failed database read instead of reusing this route. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a href="/students" className="inline-flex min-h-12 items-center rounded-lg px-4 text-sm font-medium text-blue-700 underline focus-visible:outline-2">Try again</a>
+        <a href="/students" className="inline-flex min-h-12 items-center rounded-lg px-4 text-sm font-medium text-blue-700 underline focus-visible:outline-2">重试</a>
       </div>
     );
   }
@@ -34,18 +36,18 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Students</h1>
-          <p className="text-sm leading-6 text-slate-600">Students and their current school classes.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">学生</h1>
+          <p className="text-sm leading-6 text-slate-600">查看学生及目前就读班级。</p>
         </div>
         <Link href="/students/new" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-blue-700 px-4 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
-          <Plus aria-hidden="true" className="size-4" /> Add Student
+          <Plus aria-hidden="true" className="size-4" /> 添加学生
         </Link>
       </div>
       {created.success && studentList.some((student) => student.id === created.data) && (
-        <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">Student added successfully.</p>
+        <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">学生已添加。</p>
       )}
       {studentList.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No students recorded yet.</p>
+        <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">暂无学生。</p>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {studentList.map((student) => (
@@ -56,11 +58,11 @@ export default async function Page({ searchParams }: PageProps<"/students">) {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h2 className="min-w-0 break-words text-base font-medium">{student.name}</h2>
                     <Badge variant="secondary" className={student.status === "ACTIVE" ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}>
-                      {student.status === "ACTIVE" ? "Active" : "Inactive"}
+                      {student.status === "ACTIVE" ? "启用中" : "已停用"}
                     </Badge>
                   </div>
                   <p className="break-words text-sm text-slate-600">{student.schoolName}</p>
-                  <p className="text-sm text-slate-600">Grade {student.grade} · {student.className}</p>
+                  <p className="text-sm text-slate-600">{formatGrade(student.grade)} · {student.className}</p>
                 </CardContent>
               </Card>
               </Link>

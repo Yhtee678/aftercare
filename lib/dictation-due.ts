@@ -5,9 +5,9 @@ export function nextCalendarDate(today: string) {
   return date.toISOString().slice(0, 10);
 }
 export function dictationDueLabel(scheduled: string, today: string, unresolved: boolean) {
-  if (!unresolved) return "Completed";
-  if (scheduled < today) return "Overdue";
-  if (scheduled === today) return "Due today";
-  if (scheduled === nextCalendarDate(today)) return "Due tomorrow";
-  return `Due ${scheduled}`;
+  if (!unresolved) return "已完成";
+  if (scheduled < today) return "已逾期，尚未完成";
+  if (scheduled === today) return "今日听写，尚未完成";
+  if (scheduled === nextCalendarDate(today)) return "明日听写，尚未完成";
+  return `听写日期：${scheduled}`;
 }

@@ -13,7 +13,7 @@ function matches(task: typeof dictationTasks.$inferSelect, input: CreateDictatio
 
 export async function insertClassDictation(raw: unknown): Promise<DictationResult> {
   const parsed = createDictationSchema.safeParse(raw);
-  if (!parsed.success) return { success: false, message: "Check the dictation details and try again." };
+  if (!parsed.success) return { success: false, message: "请检查听写内容后重试。" };
   const input = parsed.data;
   return db.transaction(async (tx) => {
     // Serialize retries of this form, including a retry after the first response was lost.
@@ -21,14 +21,14 @@ export async function insertClassDictation(raw: unknown): Promise<DictationResul
     const [existing] = await tx.select().from(dictationTasks).where(eq(dictationTasks.id, input.submissionId));
     if (existing) return matches(existing, input)
       ? { success: true, id: existing.id }
-      : { success: false, message: "This form was already saved with different details. Open Add Dictation again." };
+      : { success: false, message: "此表单已保存其他资料，请重新打开“添加听写”。" };
     const [schoolClass] = await tx.select({ id: schoolClasses.id }).from(schoolClasses)
       .innerJoin(schools, eq(schoolClasses.schoolId, schools.id))
       .where(and(eq(schoolClasses.id, input.schoolClassId), eq(schoolClasses.status, "ACTIVE"), eq(schools.status, "ACTIVE"))).for("share");
-    if (!schoolClass) return { success: false, message: "This class or school is inactive or unavailable. Choose an active class." };
+    if (!schoolClass) return { success: false, message: "此班级或学校已停用或不可用，请选择已启用的班级。" };
     const roster = await tx.select({ id: students.id }).from(students)
       .where(and(eq(students.schoolClassId, schoolClass.id), eq(students.status, "ACTIVE"))).for("share");
-    if (!roster.length) return { success: false, message: "This class has no active students. Add an active student before assigning dictation." };
+    if (!roster.length) return { success: false, message: "此班级暂无启用的学生，请先添加学生再分配听写。" };
     await tx.insert(dictationTasks).values({
       id: input.submissionId, scope: "CLASS", schoolClassId: input.schoolClassId,
       type: input.type, description: input.description, source: input.source,
@@ -43,13 +43,13 @@ export async function insertClassDictation(raw: unknown): Promise<DictationResul
 
 export async function updateDictationStatus(raw: unknown): Promise<DictationResult> {
   const parsed = changeDictationStatusSchema.safeParse(raw);
-  if (!parsed.success) return { success: false, message: "Invalid dictation update." };
+  if (!parsed.success) return { success: false, message: "听写更新无效。" };
   const input = parsed.data;
   return db.transaction(async (tx) => {
     const [existing] = await tx.select().from(studentDictation).where(eq(studentDictation.id, input.id)).for("update");
-    if (!existing) return { success: false, message: "This student assignment is unavailable. Refresh and try again." };
+    if (!existing) return { success: false, message: "找不到此学生的任务，请刷新后重试。" };
     if (existing.status === "NEEDS_PRACTICE" && input.status === "NEEDS_PRACTICE") return { success: true, id: existing.dictationTaskId };
-    if (!canChangeDictationStatus(existing.status, input.status)) return { success: false, message: "This dictation has already been checked or changed. Refresh to see its current status." };
+    if (!canChangeDictationStatus(existing.status, input.status)) return { success: false, message: "此听写已检查或已更新，请刷新查看目前状态。" };
     await tx.update(studentDictation).set({ status: input.status, verifiedAt: input.status === "COMPLETED" ? sql`now()` : null, updatedAt: sql`now()` })
       .where(and(eq(studentDictation.id, existing.id), eq(studentDictation.status, existing.status)));
     return { success: true, id: existing.dictationTaskId };

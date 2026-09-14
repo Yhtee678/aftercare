@@ -9,7 +9,7 @@ export async function markStudentInactive(input: DeactivateStudentInput): Promis
   return db.transaction(async (tx) => {
     const [student] = await tx.select({ id: students.id, status: students.status })
       .from(students).where(eq(students.id, input.id)).limit(1).for("update");
-    if (!student) return { success: false, message: "Student not found. Return to Students and try again." };
+    if (!student) return { success: false, message: "找不到学生，请返回学生列表后重试。" };
     // Retries leave every field, including updated_at, unchanged.
     if (student.status === "INACTIVE") return { success: true, id: student.id };
     const [updated] = await tx.update(students)
@@ -24,15 +24,15 @@ export async function updateStudent(input: EditStudentInput): Promise<CreateStud
   return db.transaction(async (tx) => {
     const [existing] = await tx.select().from(students)
       .where(eq(students.id, input.id)).limit(1).for("update");
-    if (!existing) return { success: false, message: "Student not found. Return to Students and try again." };
+    if (!existing) return { success: false, message: "找不到学生，请返回学生列表后重试。" };
 
     const [activeClass] = await tx.select({ id: schoolClasses.id }).from(schoolClasses)
       .innerJoin(schools, eq(schoolClasses.schoolId, schools.id))
       .where(and(eq(schoolClasses.id, input.schoolClassId), eq(schoolClasses.status, "ACTIVE"), eq(schools.status, "ACTIVE")))
       .for("share");
     if (!activeClass) return {
-      success: false, message: "Select an available school class.",
-      fieldErrors: { schoolClassId: "This class is no longer available. Choose an active class." },
+      success: false, message: "请选择可用的班级。",
+      fieldErrors: { schoolClassId: "此班级已不可用，请选择已启用的班级。" },
     };
 
     // Identical retries are a no-op, including the audit timestamp.
@@ -62,7 +62,7 @@ export async function insertStudent(input: CreateStudentInput): Promise<CreateSt
         && existing.notes === input.notes;
       return matches ? { success: true, id: existing.id } : {
         success: false,
-        message: "This form has already been used with different details. Open Add Student again to create another student.",
+        message: "此表单已保存其他资料，如需添加另一名学生，请重新打开“添加学生”。",
       };
     };
 
@@ -76,8 +76,8 @@ export async function insertStudent(input: CreateStudentInput): Promise<CreateSt
       .for("share");
 
     if (!activeClass) return {
-      success: false, message: "Select an available school class.",
-      fieldErrors: { schoolClassId: "This class is no longer available. Choose an active class." },
+      success: false, message: "请选择可用的班级。",
+      fieldErrors: { schoolClassId: "此班级已不可用，请选择已启用的班级。" },
     };
 
     const [created] = await tx.insert(students).values({

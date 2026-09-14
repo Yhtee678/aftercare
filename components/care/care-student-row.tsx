@@ -13,8 +13,8 @@ type Student = {
   bagChecked: boolean | null; finalCheckCompleted: boolean | null;
 };
 const checks = [
-  { action: "mealCompleted", label: "Meal" }, { action: "showerCompleted", label: "Shower" },
-  { action: "bagChecked", label: "Bag Check" }, { action: "finalCheckCompleted", label: "Final Check" },
+  { action: "mealCompleted", label: "吃饭" }, { action: "showerCompleted", label: "冲凉" },
+  { action: "bagChecked", label: "检查书包" }, { action: "finalCheckCompleted", label: "最终检查" },
 ] as const;
 
 export function CareStudentRow({ student, schoolClassId, recordDate, readOnly, originalClass }: {
@@ -29,31 +29,31 @@ export function CareStudentRow({ student, schoolClassId, recordDate, readOnly, o
     startTransition(async () => {
       try {
         const result = await completeCareAction({ studentId: student.studentId, schoolClassId, recordDate, action });
-        setFeedback(result.success ? { error: false, text: "Saved." } : { error: true, text: result.message });
-      } catch { setFeedback({ error: true, text: "Unable to confirm the update. Retry or refresh to check its state." }); }
+        setFeedback(result.success ? { error: false, text: "已保存。" } : { error: true, text: result.message });
+      } catch { setFeedback({ error: true, text: "暂时无法确认更新结果，请重试或刷新查看状态。" }); }
       finally { busy.current = false; }
     });
   };
   return <li className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h2 className="break-words font-semibold">{student.name}</h2>
-      <p className="text-sm text-slate-600">{student.arrivalTime ? <>Arrived <time dateTime={student.arrivalTime}>{formatCareTime(student.arrivalTime)}</time></> : "Not arrived"}</p>
+      <p className="text-sm text-slate-600">{student.arrivalTime ? <>已到班 <time dateTime={student.arrivalTime}>{formatCareTime(student.arrivalTime)}</time></> : "未到班"}</p>
     </div>
-    {originalClass && <p className="text-xs text-slate-600">Day started in {originalClass}. Original class context is preserved.</p>}
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label={`Care checklist for ${student.name}`}>
+    {originalClass && <p className="text-xs text-slate-600">本日首次记录班级： {originalClass}。原班级信息已保留。</p>}
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5" aria-label={`托育检查： ${student.name}`}>
       <Button variant="outline" disabled={pending || readOnly || !!student.arrivalTime} onClick={() => record("arrival")}
-        aria-label={`Record arrival for ${student.name}`} aria-pressed={!!student.arrivalTime}
+        aria-label={`记录到班： ${student.name}`} aria-pressed={!!student.arrivalTime}
         className={`col-span-2 min-h-12 sm:col-span-1 disabled:opacity-100 ${student.arrivalTime ? "border-green-200 bg-green-50 text-green-800" : "border-blue-300 text-blue-700"}`}>
-        {student.arrivalTime ? <Check aria-hidden="true" /> : <Circle aria-hidden="true" />} {student.arrivalTime ? "Arrived" : "Arrive"}
+        {student.arrivalTime ? <Check aria-hidden="true" /> : <Circle aria-hidden="true" />} {student.arrivalTime ? "已到班" : "记录到班"}
       </Button>
       {checks.map(({ action, label }) => <Button key={action} variant="outline" onClick={() => record(action)}
         disabled={pending || readOnly || !student.arrivalTime || !!student[action]}
-        aria-label={`Mark ${label} completed for ${student.name}`} aria-pressed={!!student[action]}
+        aria-label={`标记 ${label} 已完成： ${student.name}`} aria-pressed={!!student[action]}
         className={`min-h-12 ${student[action] ? "border-green-200 bg-green-50 text-green-800 disabled:opacity-100" : "text-slate-600"}`}>
         {student[action] ? <Check aria-hidden="true" /> : <Circle aria-hidden="true" />} {label}
       </Button>)}
     </div>
-    {pending ? <p role="status" className="text-xs text-slate-600">Saving…</p>
+    {pending ? <p role="status" className="text-xs text-slate-600">正在保存…</p>
       : feedback && <p role={feedback.error ? "alert" : "status"} className={`text-xs ${feedback.error ? "text-red-700" : "text-slate-600"}`}>{feedback.text}</p>}
   </li>;
 }

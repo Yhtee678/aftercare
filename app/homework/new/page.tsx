@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { HomeworkForm } from "@/components/homework/homework-form";
 import { HomeworkLoadError } from "@/components/homework/homework-load-error";
 
-export const metadata: Metadata = { title: "Add Homework" };
+export const metadata: Metadata = { title: "添加功课" };
 export default async function Page() {
   await connection();
   let classes;
@@ -18,9 +18,9 @@ export default async function Page() {
   }
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   return <div className="max-w-2xl space-y-6">
-    <Link href="/homework" className="inline-flex min-h-12 items-center text-blue-700 underline">Back to Homework</Link>
-    <h1 className="text-2xl font-semibold">Add Homework</h1>
+    <Link href="/homework" className="inline-flex min-h-12 items-center text-blue-700 underline">返回功课</Link>
+    <h1 className="text-2xl font-semibold">添加功课</h1>
     {classes.length ? <HomeworkForm classes={classes} submissionId={randomUUID()} today={today} />
-      : <p>No active classes are available. Add an active school and class in More before creating homework.</p>}
+      : <p>暂无可用班级，请先在“更多”中添加并启用学校和班级。</p>}
   </div>;
 }

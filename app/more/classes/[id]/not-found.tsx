@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export default function NotFound() {
-  return <div className="space-y-4"><h1 className="text-2xl font-semibold">School class not found</h1>
-    <p className="text-sm text-slate-600">This class link is invalid or the class is unavailable.</p>
-    <Link href="/more/classes" className="inline-flex min-h-12 items-center text-blue-700 underline">Back to Classes</Link>
+  return <div className="space-y-4"><h1 className="text-2xl font-semibold">找不到班级</h1>
+    <p className="text-sm text-slate-600">班级链接无效或班级不存在。</p>
+    <Link href="/more/classes" className="inline-flex min-h-12 items-center text-blue-700 underline">返回班级</Link>
   </div>;
 }

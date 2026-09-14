@@ -6,7 +6,7 @@ import { SchoolForm } from "@/components/schools/school-form";
 import { SchoolLoadError } from "@/components/schools/school-load-error";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata: Metadata = { title: "Edit School" };
+export const metadata: Metadata = { title: "编辑学校" };
 
 export default async function Page({ params }: PageProps<"/more/schools/[id]/edit">) {
   await connection();
@@ -22,8 +22,8 @@ export default async function Page({ params }: PageProps<"/more/schools/[id]/edi
   }
   if (!school) notFound();
   return <div className="max-w-2xl space-y-6">
-    <h1 className="text-2xl font-semibold">Edit School</h1>
-    <p className="text-sm text-slate-600">Update the school name.</p>
+    <h1 className="text-2xl font-semibold">编辑学校</h1>
+    <p className="text-sm text-slate-600">修改学校名称。</p>
     <Card className="shadow-none"><CardContent><SchoolForm mode="edit" id={school.id} name={school.name} /></CardContent></Card>
   </div>;
 }

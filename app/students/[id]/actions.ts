@@ -5,7 +5,7 @@ import { deactivateStudentSchema, type DeactivateStudentResult } from "@/lib/val
 
 export async function deactivateStudent(input: unknown): Promise<DeactivateStudentResult> {
   const parsed = deactivateStudentSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: "Confirm deactivation for a valid student and try again." };
+  if (!parsed.success) return { success: false, message: "请确认要停用的学生后重试。" };
   try {
     const { markStudentInactive } = await import("@/db/mutations/students");
     const result = await markStudentInactive(parsed.data);
@@ -17,6 +17,6 @@ export async function deactivateStudent(input: unknown): Promise<DeactivateStude
     return result;
   } catch {
     console.error("Deactivate Student: database update or revalidation failed.");
-    return { success: false, message: "Unable to deactivate the student. Please try again." };
+    return { success: false, message: "暂时无法停用学生，请重试。" };
   }
 }

@@ -11,7 +11,7 @@ function refreshDictation(id: string) {
 
 export async function createDictation(input: unknown): Promise<DictationResult> {
   const parsed = createDictationSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Check the dictation details." };
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "请检查听写内容。" };
   try {
     const { insertClassDictation } = await import("@/db/mutations/dictation");
     const result = await insertClassDictation(input);
@@ -19,12 +19,12 @@ export async function createDictation(input: unknown): Promise<DictationResult> 
     return result;
   } catch {
     console.error("Dictation creation: transaction or revalidation failed.");
-    return { success: false, message: "Unable to save dictation. Please retry using this form." };
+    return { success: false, message: "暂时无法保存听写，请使用此表单重试。" };
   }
 }
 
 export async function changeDictationStatus(input: unknown): Promise<DictationResult> {
-  if (!changeDictationStatusSchema.safeParse(input).success) return { success: false, message: "Invalid dictation update." };
+  if (!changeDictationStatusSchema.safeParse(input).success) return { success: false, message: "听写更新无效。" };
   try {
     const { updateDictationStatus } = await import("@/db/mutations/dictation");
     const result = await updateDictationStatus(input);
@@ -34,6 +34,6 @@ export async function changeDictationStatus(input: unknown): Promise<DictationRe
     return result;
   } catch {
     console.error("Dictation check: update or revalidation failed.");
-    return { success: false, message: "Unable to confirm the update. Refresh to check its status before trying again." };
+    return { success: false, message: "暂时无法确认更新结果，请刷新查看状态后重试。" };
   }
 }

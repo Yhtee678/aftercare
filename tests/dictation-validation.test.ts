@@ -25,9 +25,9 @@ test("Due labels use Malaysia calendar dates and retain overdue unresolved tasks
   assert.equal(today, "2026-09-14");
   assert.equal(nextCalendarDate("2026-12-31"), "2027-01-01");
   assert.equal(nextCalendarDate("2028-02-28"), "2028-02-29");
-  assert.equal(dictationDueLabel("2026-09-13", today, true), "Overdue");
-  assert.equal(dictationDueLabel(today, today, true), "Due today");
-  assert.equal(dictationDueLabel("2026-09-15", today, true), "Due tomorrow");
-  assert.equal(dictationDueLabel("2026-09-16", today, true), "Due 2026-09-16");
-  assert.equal(dictationDueLabel("2026-09-13", today, false), "Completed");
+  assert.equal(dictationDueLabel("2026-09-13", today, true), "已逾期，尚未完成");
+  assert.equal(dictationDueLabel(today, today, true), "今日听写，尚未完成");
+  assert.equal(dictationDueLabel("2026-09-15", today, true), "明日听写，尚未完成");
+  assert.equal(dictationDueLabel("2026-09-16", today, true), "听写日期：2026-09-16");
+  assert.equal(dictationDueLabel("2026-09-13", today, false), "已完成");
 });

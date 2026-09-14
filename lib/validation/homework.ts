@@ -1,20 +1,20 @@
-import { z } from "zod";
+import { z } from "./zod";
 
-export const homeworkIdSchema = z.uuid("Invalid homework reference.");
+export const homeworkIdSchema = z.uuid("功课信息无效。");
 const optionalPage = z.union([
   z.literal("").transform(() => null), z.null(),
-  z.number(), z.string().trim().regex(/^\d+$/, "Enter a whole page number.").transform(Number),
-]).pipe(z.number().int().min(1, "Pages start at 1.").max(2147483647).nullable());
+  z.number(), z.string().trim().regex(/^\d+$/, "页数必须是整数。").transform(Number),
+]).pipe(z.number().int().min(1, "页数须从1开始。").max(2147483647).nullable());
 export const homeworkFormSchema = z.object({
-  schoolClassId: z.uuid("Select an active school class."),
-  subject: z.string().trim().min(1, "Enter the subject.").max(200),
-  description: z.string().trim().min(1, "Describe the homework.").max(5000),
+  schoolClassId: z.uuid("请选择已启用的班级。"),
+  subject: z.string().trim().min(1, "请填写科目。").max(200),
+  description: z.string().trim().min(1, "请填写功课内容。").max(5000),
   taskType: z.string().trim().max(200).transform((value) => value || null),
   pageFrom: optionalPage,
   pageTo: optionalPage,
-  taskDate: z.iso.date("Enter a valid task date."),
+  taskDate: z.iso.date("请填写有效的功课日期。"),
 }).refine((value) => value.pageTo === null || (value.pageFrom !== null && value.pageTo >= value.pageFrom), {
-  path: ["pageTo"], message: "Enter a starting page and an ending page at or after it.",
+  path: ["pageTo"], message: "请填写起始页数，结束页数不能小于起始页数。",
 });
 export const createHomeworkSchema = homeworkFormSchema.safeExtend({ submissionId: homeworkIdSchema });
 export const changeHomeworkStatusSchema = z.object({

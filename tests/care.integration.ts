@@ -83,12 +83,12 @@ async function run() {
     const classPage = await html(`/care/classes/${classIds[0]}`);
     assert.ok(classPage.includes(`Test Care Student 0`) && classPage.includes(`Test Care Student 1`));
     assert.ok(!classPage.includes(`Test Care Student 2`));
-    assert.ok(classPage.includes("Arrived") && classPage.includes('aria-pressed="true"'));
+    assert.ok(classPage.includes("已到班") && classPage.includes('aria-pressed="true"'));
     const browsing = await html("/care");
-    for (let grade = 1; grade <= 6; grade++) assert.ok(browsing.includes(`Grade ${grade}`));
+    for (let grade = 1; grade <= 6; grade++) assert.ok(browsing.includes(`年级 ${grade}`));
     assert.ok(browsing.includes(`/care/classes/${classIds[0]}`) && !browsing.includes(`/care/classes/${classIds[2]}`));
-    assert.ok((await html(`/care/classes/${classIds[1]}`)).includes("No active students"));
-    for (const id of ["bad", randomUUID()]) assert.ok((await html(`/care/classes/${id}`)).includes("Class not found"));
+    assert.ok((await html(`/care/classes/${classIds[1]}`)).includes("此班级暂无启用的学生"));
+    for (const id of ["bad", randomUUID()]) assert.ok((await html(`/care/classes/${id}`)).includes("找不到班级"));
     // Changing enrollment and labels must not rewrite either day's recorded context.
     await db.update(students).set({ schoolClassId: classIds[1] }).where(eq(students.id, studentIds[0]));
     await db.update(schoolClasses).set({ className: "Test Care Renamed", grade: 2 }).where(eq(schoolClasses.id, classIds[0]));
@@ -96,7 +96,7 @@ async function run() {
     assert.equal((await invoke(input)).success, false);
     assert.equal((await invoke({ ...input, schoolClassId: classIds[1] })).success, true);
     assert.deepEqual((await read())[0], completed);
-    assert.ok((await html(`/care/classes/${classIds[1]}`)).includes("Day started in"));
+    assert.ok((await html(`/care/classes/${classIds[1]}`)).includes("本日首次记录班级："));
     await db.update(students).set({ status: "INACTIVE" }).where(eq(students.id, studentIds[0]));
     assert.equal((await invoke({ ...input, schoolClassId: classIds[1] })).success, false);
     assert.deepEqual((await read())[0], completed);

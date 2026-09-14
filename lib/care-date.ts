@@ -10,7 +10,7 @@ export function getCareDate(now = new Date()): string {
 }
 
 export function formatCareTime(value: string): string {
-  return new Intl.DateTimeFormat("en-MY", {
+  return new Intl.DateTimeFormat("zh-CN", {
     timeZone: CARE_TIME_ZONE, hour: "numeric", minute: "2-digit",
   }).format(new Date(value));
 }

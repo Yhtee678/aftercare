@@ -38,7 +38,7 @@ export function SchoolClassForm(props: Props) {
       setSavedId(result.id);
       router.replace(`/more/classes/${result.id}?${props.mode === "create" ? "created" : "updated"}=1`);
     } catch {
-      setError("root", { message: "Unable to confirm the save. Please try again using this form." });
+      setError("root", { message: "暂时无法确认保存结果，请使用此表单重试。" });
     }
   };
   return <form method="post" noValidate className="space-y-5" onSubmit={(event) => {
@@ -49,23 +49,23 @@ export function SchoolClassForm(props: Props) {
       try { await handleSubmit(submit)(event); } finally { saving.current = false; }
     });
   }}>
-    <noscript><p>Enable JavaScript to use the class form.</p></noscript>
+    <noscript><p>请启用 JavaScript 以填写班级资料。</p></noscript>
     {errors.root && <p role="alert" className="text-sm text-red-700">{errors.root.message}</p>}
-    {savedId && <p role="status" className="text-sm text-green-800">School class saved successfully.</p>}
+    {savedId && <p role="status" className="text-sm text-green-800">班级已保存。</p>}
     <fieldset disabled={isSubmitting || !!savedId} className="space-y-5 disabled:opacity-70">
       <div>
-        <label htmlFor="schoolId" className="text-sm font-medium">School <span aria-hidden="true">*</span></label>
+        <label htmlFor="schoolId" className="text-sm font-medium">学校 <span aria-hidden="true">*</span></label>
         <select id="schoolId" {...register("schoolId")} defaultValue={props.initialValues.schoolId} required className={inputClass} aria-invalid={!!errors.schoolId} aria-describedby="school-help school-error">
-          <option value="">Select an active school</option>
+          <option value="">请选择已启用的学校</option>
           {props.schools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
         </select>
-        <p id="school-help" className="mt-1 text-xs text-slate-600">Only active schools are available.</p>
+        <p id="school-help" className="mt-1 text-xs text-slate-600">仅显示已启用的学校。</p>
         <p id="school-error" role={errors.schoolId ? "alert" : undefined} className="mt-1 text-sm text-red-700">{errors.schoolId?.message}</p>
       </div>
       {([
-        { name: "academicYear", label: "Academic year", type: "number", min: 1000, max: 9999 },
-        { name: "grade", label: "Grade", type: "number", min: 1, max: 6 },
-        { name: "className", label: "Class name", type: "text", min: undefined, max: undefined },
+        { name: "academicYear", label: "学年", type: "number", min: 1000, max: 9999 },
+        { name: "grade", label: "年级", type: "number", min: 1, max: 6 },
+        { name: "className", label: "班级名称", type: "text", min: undefined, max: undefined },
       ] as const).map((field) => <div key={field.name}>
         <label htmlFor={field.name} className="text-sm font-medium">{field.label} <span aria-hidden="true">*</span></label>
         <input id={field.name} {...register(field.name)} defaultValue={props.initialValues[field.name]} type={field.type} required min={field.min} max={field.max}
@@ -74,9 +74,9 @@ export function SchoolClassForm(props: Props) {
         {errors[field.name] && <p id={`${field.name}-error`} role="alert" className="mt-1 text-sm text-red-700">{errors[field.name]?.message}</p>}
       </div>)}
       <Button type="submit" className="min-h-12 w-full bg-blue-700 text-white hover:bg-blue-800 sm:w-auto sm:px-6">
-        {savedId ? "Saved" : isSubmitting ? "Saving…" : props.mode === "create" ? "Add School Class" : "Save changes"}
+        {savedId ? "已保存" : isSubmitting ? "正在保存…" : props.mode === "create" ? "添加班级" : "保存更改"}
       </Button>
     </fieldset>
-    <Link href={props.mode === "create" ? "/more/classes" : `/more/classes/${props.id}`} className="inline-flex min-h-12 items-center text-sm text-slate-600 underline">Cancel</Link>
+    <Link href={props.mode === "create" ? "/more/classes" : `/more/classes/${props.id}`} className="inline-flex min-h-12 items-center text-sm text-slate-600 underline">取消</Link>
   </form>;
 }

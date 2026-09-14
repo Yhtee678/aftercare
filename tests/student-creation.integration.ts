@@ -48,7 +48,7 @@ async function run() {
       .orderBy(asc(schoolClasses.id)).limit(1);
     assert.ok(activeClass);
     const list = await (await fetch(`${baseUrl}/students`)).text();
-    assert.ok(list.includes("Test Amy Tan") && list.includes("Add Student"));
+    assert.ok(list.includes("Test Amy Tan") && list.includes("添加学生"));
     const form = await (await fetch(`${baseUrl}/students/new`)).text();
     for (const field of ["name", "schoolClassId", "parentName", "parentPhone", "notes"]) {
       assert.ok(form.includes(`name="${field}"`));
@@ -82,20 +82,20 @@ async function run() {
 
     const resultPage = await (await fetch(`${baseUrl}/students?created=${submissionId}`)).text();
     assert.ok(resultPage.includes(testName));
-    assert.ok(resultPage.includes("Student added successfully."));
+    assert.ok(resultPage.includes("学生已添加。"));
     assert.ok(resultPage.includes('aria-current="page"'));
     console.log("PASS: Students view includes the persisted student, success message, and active navigation.");
 
     const detail = await (await fetch(`${baseUrl}/students/${submissionId}`)).text();
-    assert.ok(detail.includes(testName) && detail.includes("Edit Student") && detail.includes("Not provided"));
+    assert.ok(detail.includes(testName) && detail.includes("编辑学生") && detail.includes("未填写"));
     assert.ok(resultPage.includes(`href="/students/${submissionId}"`));
     const editForm = await (await fetch(`${baseUrl}/students/${submissionId}/edit`)).text();
-    assert.ok(editForm.includes(`value="${testName}"`) && editForm.includes("Save changes"));
+    assert.ok(editForm.includes(`value="${testName}"`) && editForm.includes("保存更改"));
     assert.ok(!editForm.includes('name="status"'));
     for (const id of ["invalid-id", randomUUID()]) {
       for (const suffix of ["", "/edit"]) {
         const missing = await (await fetch(`${baseUrl}/students/${id}${suffix}`)).text();
-        assert.ok(missing.includes("Student not found"));
+        assert.ok(missing.includes("找不到学生"));
       }
     }
     console.log("PASS: detail, prefilled edit form, list links and invalid/missing route IDs.");
@@ -129,11 +129,11 @@ async function run() {
     assert.deepEqual(await readTarget(), after);
     assert.deepEqual(await db.select().from(students).where(ne(students.id, submissionId)).orderBy(asc(students.id)), otherRows);
     const updatedDetail = await (await fetch(`${baseUrl}/students/${submissionId}?updated=1`)).text();
-    assert.ok(updatedDetail.includes(editInput.name) && updatedDetail.includes("Student updated successfully.") && updatedDetail.includes("Test Parent"));
+    assert.ok(updatedDetail.includes(editInput.name) && updatedDetail.includes("学生资料已更新。") && updatedDetail.includes("Test Parent"));
     assert.ok((await (await fetch(`${baseUrl}/students`)).text()).includes(editInput.name));
     console.log("PASS: edit changes exactly the intended row, preserves status/created_at, advances updated_at, makes retries a no-op, and refreshes detail/list.");
 
-    assert.ok(updatedDetail.includes("Deactivate Student") && updatedDetail.includes("Confirm deactivation"));
+    assert.ok(updatedDetail.includes("停用学生") && updatedDetail.includes("确认停用"));
     assert.ok(updatedDetail.includes("This marks the student as inactive.") && updatedDetail.includes(editInput.name));
     const deactivateInput = { id: submissionId, confirmed: true };
     for (const invalid of [{ id: submissionId }, { ...deactivateInput, confirmed: false }, { ...deactivateInput, id: "invalid" }, { ...deactivateInput, id: randomUUID() }]) {
@@ -152,11 +152,11 @@ async function run() {
     console.log("PASS: confirmation/ID validation, concurrent ACTIVE to INACTIVE transition, unchanged other rows/fields and idempotent inactive retries.");
 
     const inactiveDetail = await (await fetch(`${baseUrl}/students/${submissionId}?deactivated=1`)).text();
-    assert.ok(inactiveDetail.includes("Student deactivated successfully.") && inactiveDetail.includes(">Inactive</"));
+    assert.ok(inactiveDetail.includes("学生已停用。") && inactiveDetail.includes(">Inactive</"));
     assert.ok(!inactiveDetail.includes(">Deactivate Student</summary>"));
     const inactiveList = await (await fetch(`${baseUrl}/students`)).text();
     const card = inactiveList.match(new RegExp(`<a[^>]*href="/students/${submissionId}"[^>]*>[\\s\\S]*?</a>`))?.[0];
-    assert.ok(card?.includes("Inactive") && card.includes(editInput.name));
+    assert.ok(card?.includes("已停用") && card.includes(editInput.name));
     const inactiveEdit = { ...editInput, notes: "M3C fictional inactive edit test", status: "ACTIVE" };
     assert.equal((await invoke(inactiveEdit, submissionId)).success, true);
     const editedInactive = await readTarget();

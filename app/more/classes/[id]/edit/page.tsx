@@ -8,7 +8,7 @@ import { ClassLoadError } from "@/components/classes/class-load-error";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ActiveSchoolOption } from "@/db/queries/schools";
 
-export const metadata: Metadata = { title: "Edit School Class" };
+export const metadata: Metadata = { title: "编辑班级" };
 
 export default async function Page({ params }: PageProps<"/more/classes/[id]/edit">) {
   await connection();
@@ -29,12 +29,12 @@ export default async function Page({ params }: PageProps<"/more/classes/[id]/edi
   }
   if (!item) notFound();
   const available = schools.some((school) => school.id === item.schoolId);
-  return <div className="max-w-2xl space-y-6"><h1 className="text-2xl font-semibold">Edit School Class</h1>
-    <p className="text-sm text-slate-600">Update the class details. Linked students will remain in this class.</p>
+  return <div className="max-w-2xl space-y-6"><h1 className="text-2xl font-semibold">编辑班级</h1>
+    <p className="text-sm text-slate-600">修改班级资料，原有学生仍保留在此班级。</p>
     <Card className="shadow-none"><CardContent>{schools.length ? <>
-      {!available && <p role="status" className="mb-5 text-sm text-amber-800">The current school is inactive. Select an active school before saving.</p>}
+      {!available && <p role="status" className="mb-5 text-sm text-amber-800">目前的学校已停用，请选择已启用的学校再保存。</p>}
       <SchoolClassForm mode="edit" id={item.id} schools={schools} initialValues={{ schoolId: available ? item.schoolId : "", academicYear: item.academicYear, grade: item.grade, className: item.className }} />
-    </> : <div className="space-y-3"><p className="text-sm text-slate-600">No active schools are available. An active school is required before saving.</p><Link href={`/more/classes/${id}`} className="inline-flex min-h-12 items-center text-blue-700 underline">Back to class</Link></div>}
+    </> : <div className="space-y-3"><p className="text-sm text-slate-600">暂无可用学校，请先启用学校再保存。</p><Link href={`/more/classes/${id}`} className="inline-flex min-h-12 items-center text-blue-700 underline">返回班级</Link></div>}
     </CardContent></Card>
   </div>;
 }

@@ -10,7 +10,7 @@ function refreshHomework(id: string) {
 
 export async function createHomework(input: unknown): Promise<HomeworkResult> {
   const parsed = createHomeworkSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Check the homework details." };
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "请检查功课内容。" };
   try {
     const { insertClassHomework } = await import("@/db/mutations/homework");
     const result = await insertClassHomework(input);
@@ -18,12 +18,12 @@ export async function createHomework(input: unknown): Promise<HomeworkResult> {
     return result;
   } catch {
     console.error("Homework creation: transaction or revalidation failed.");
-    return { success: false, message: "Unable to save homework. Please retry using this form." };
+    return { success: false, message: "暂时无法保存功课，请使用此表单重试。" };
   }
 }
 
 export async function changeHomeworkStatus(input: unknown): Promise<HomeworkResult> {
-  if (!changeHomeworkStatusSchema.safeParse(input).success) return { success: false, message: "Invalid homework update." };
+  if (!changeHomeworkStatusSchema.safeParse(input).success) return { success: false, message: "功课更新无效。" };
   try {
     const { updateHomeworkStatus } = await import("@/db/mutations/homework");
     const result = await updateHomeworkStatus(input);
@@ -32,6 +32,6 @@ export async function changeHomeworkStatus(input: unknown): Promise<HomeworkResu
     return result;
   } catch {
     console.error("Homework check: update or revalidation failed.");
-    return { success: false, message: "Unable to confirm the update. Refresh to check its status before trying again." };
+    return { success: false, message: "暂时无法确认更新结果，请刷新查看状态后重试。" };
   }
 }

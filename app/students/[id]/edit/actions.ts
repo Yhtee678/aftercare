@@ -13,7 +13,7 @@ export async function editStudent(input: unknown): Promise<CreateStudentResult> 
         fieldErrors[field] ??= issue.message;
       }
     }
-    return { success: false, message: "Check the form details and try again.", fieldErrors };
+    return { success: false, message: "请检查填写的资料后重试。", fieldErrors };
   }
   try {
     const { updateStudent } = await import("@/db/mutations/students");
@@ -26,6 +26,6 @@ export async function editStudent(input: unknown): Promise<CreateStudentResult> 
     return result;
   } catch {
     console.error("Edit Student: database update or revalidation failed.");
-    return { success: false, message: "Unable to save the student. Please try again." };
+    return { success: false, message: "暂时无法保存学生，请重试。" };
   }
 }

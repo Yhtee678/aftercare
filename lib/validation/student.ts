@@ -1,30 +1,30 @@
-import { z } from "zod";
+import { z } from "./zod";
 
 const optionalText = (max: number, label: string) => z.string()
-  .trim().max(max, `${label} must be ${max} characters or fewer.`)
+  .trim().max(max, `${label}不能超过${max}个字。`)
   .optional().transform((value) => value || null);
 
 export const studentFormSchema = z.object({
-  name: z.string().trim().min(1, "Enter the student name.")
-    .max(200, "Student name must be 200 characters or fewer."),
-  schoolClassId: z.uuid("Select a school class."),
-  parentName: optionalText(200, "Parent name"),
-  parentPhone: optionalText(50, "Parent phone"),
-  notes: optionalText(2000, "Notes"),
+  name: z.string().trim().min(1, "请填写学生姓名。")
+    .max(200, "学生姓名不能超过200个字。"),
+  schoolClassId: z.uuid("请选择班级。"),
+  parentName: optionalText(200, "家长姓名"),
+  parentPhone: optionalText(50, "家长电话"),
+  notes: optionalText(2000, "备注"),
 });
 
 export const createStudentSchema = studentFormSchema.extend({
-  submissionId: z.uuid("This form has expired. Reload it and try again."),
+  submissionId: z.uuid("表单已过期，请刷新后重试。"),
 });
 
 export type StudentFormValues = z.input<typeof studentFormSchema>;
 export type CreateStudentInput = z.output<typeof createStudentSchema>;
 export const editStudentSchema = studentFormSchema.extend({
-  id: z.uuid("This student link is invalid. Return to Students and try again."),
+  id: z.uuid("学生链接无效，请返回学生列表后重试。"),
 });
 export type EditStudentInput = z.output<typeof editStudentSchema>;
 export const deactivateStudentSchema = editStudentSchema.pick({ id: true }).extend({
-  confirmed: z.literal(true, "Confirm deactivation before continuing."),
+  confirmed: z.literal(true, "请先确认停用。"),
 });
 export type DeactivateStudentInput = z.output<typeof deactivateStudentSchema>;
 export type DeactivateStudentResult =

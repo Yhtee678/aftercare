@@ -42,7 +42,7 @@ async function run() {
     const newForm = await html("/more/classes/new");
     for (const field of ["schoolId", "academicYear", "grade", "className"]) assert.ok(newForm.includes(`name="${field}"`));
     assert.ok(!newForm.includes(`value="${inactiveSchool}"`) && newForm.includes(`value="${schoolA}"`));
-    for (const id of ["invalid", randomUUID()]) for (const suffix of ["", "/edit"]) assert.ok((await html(`/more/classes/${id}${suffix}`)).includes("School class not found"));
+    for (const id of ["invalid", randomUUID()]) for (const suffix of ["", "/edit"]) assert.ok((await html(`/more/classes/${id}${suffix}`)).includes("找不到班级"));
 
     const id = randomUUID();
     const route = `/more/classes/${id}`;
@@ -60,7 +60,7 @@ async function run() {
     const duplicateId = randomUUID();
     const duplicate = await invoke("createSchoolClass", "/more/classes/new", { ...input, submissionId: duplicateId });
     assert.equal(duplicate.success, false);
-    assert.equal(duplicate.message, "A class with this school, academic year, grade and name already exists.");
+    assert.equal(duplicate.message, "同一学校、学年、年级和名称的班级已存在。");
     assert.equal((await db.select().from(schoolClasses).where(eq(schoolClasses.id, duplicateId))).length, 0);
     const secondId = randomUUID();
     assert.equal((await invoke("createSchoolClass", "/more/classes/new", { ...input, submissionId: secondId, schoolId: schoolB })).success, true);
@@ -80,7 +80,7 @@ async function run() {
     assert.deepEqual((await db.select().from(schoolClasses).where(eq(schoolClasses.id, secondId)))[0], secondClass);
     assert.ok((await html(`${route}/edit`)).includes('value="Test M4B Edited"'));
     const detail = await html(`${route}?updated=1`);
-    assert.ok(detail.includes("School class updated successfully.") && detail.includes("2027") && detail.includes("Grade 2") && detail.includes("Confirm deactivation"));
+    assert.ok(detail.includes("班级资料已更新。") && detail.includes("2027") && detail.includes("Grade 2") && detail.includes("确认停用"));
     assert.ok((await html("/more/classes")).includes(editInput.className));
     console.log("PASS: real list/detail/forms, safe IDs, active-school creation, same-name cross-school classes, duplicate create/edit errors and isolated no-op edits.");
 
@@ -101,7 +101,7 @@ async function run() {
     assert.equal((await invoke("editSchoolClass", `${route}/edit`, { ...editInput, className: "Test M4B Inactive", status: "ACTIVE" })).success, true);
     assert.equal((await readClass()).status, "INACTIVE");
     const inactiveDetail = await html(`${route}?deactivated=1`);
-    assert.ok(inactiveDetail.includes("School class deactivated successfully.") && inactiveDetail.includes(">Inactive</"));
+    assert.ok(inactiveDetail.includes("班级已停用。") && inactiveDetail.includes(">Inactive</"));
     assert.ok(!inactiveDetail.includes(">Deactivate School Class</summary>"));
     assert.equal((await invoke("deactivateSchool", `/more/schools/${schoolB}`, { id: schoolB, confirmed: true })).success, true);
     const studentForm = await html("/students/new");
@@ -112,7 +112,7 @@ async function run() {
       assert.equal((await invoke("editStudent", `/students/${studentId}/edit`, { id: studentId, name: "Test Rejected", schoolClassId: classId })).success, false);
     }
     assert.ok((await html(`/more/classes/${secondId}/edit`)).includes("The current school is inactive."));
-    assert.ok((await html(`/more/classes/${secondId}`)).includes("School inactive"));
+    assert.ok((await html(`/more/classes/${secondId}`)).includes("学校已停用"));
     assert.ok((await html(`/students/${studentId}`)).includes(linkedStudent.name));
     assert.deepEqual((await db.select().from(students).where(eq(students.id, studentId)))[0], linkedStudent);
     assert.deepEqual(await db.select().from(schools).where(notInArray(schools.id, schoolIds)).orderBy(asc(schools.id)), originalSchools);

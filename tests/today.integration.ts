@@ -63,18 +63,18 @@ async function run() {
     assert.deepEqual(attentionIds(await html()), attentionIds(page));
     assert.ok(page.includes(`/homework/${taskIds[1]}`) && page.includes(`/care/classes/${classIds[0]}`));
     const summary = (content: string, id: string) => content.match(new RegExp(`<li[^>]*data-class-id="${id}"[^>]*>([\\s\\S]*?)</li>`))?.[1] ?? "";
-    assert.match(summary(page, classIds[0]), /3 active students · 2 arrived · 1 bags checked/);
-    assert.match(summary(page, classIds[0]), /Homework: 1 \/ 3 completed/);
-    assert.match(summary(page, classIds[0]), /2 attention items/);
-    assert.match(summary(page, classIds[1]), /1 active students · 1 arrived · 0 bags checked/);
-    assert.ok(!summary(page, classIds[1]).includes("Homework:")); // Yesterday's task is attention only.
+    assert.match(summary(page, classIds[0]), /3 名启用学生 · 2 人已到班 · 1 人已检查书包/);
+    assert.match(summary(page, classIds[0]), /功课： 1 \/ 3 已完成/);
+    assert.match(summary(page, classIds[0]), /2 项需要注意/);
+    assert.match(summary(page, classIds[1]), /1 名启用学生 · 1 人已到班 · 0 人已检查书包/);
+    assert.ok(!summary(page, classIds[1]).includes("功课：")); // Yesterday's task is attention only.
     assert.equal(await invoke("changeHomeworkStatus", { id: assignmentIds[0], status: "COMPLETED" }), true);
     assert.equal(await invoke("completeCareAction", { studentId: studentIds[0], schoolClassId: classIds[0], recordDate: today, action: "bagChecked" }), true);
     page = await html();
     assert.ok(!attentionIds(page).includes(assignmentIds[0]) && !attentionIds(page).includes(dailyIds[0]));
-    assert.match(summary(page, classIds[0]), /Homework: 2 \/ 3 completed/);
-    assert.match(summary(page, classIds[0]), /3 active students · 2 arrived · 2 bags checked/);
-    assert.match(summary(page, classIds[0]), /0 attention items/);
+    assert.match(summary(page, classIds[0]), /功课： 2 \/ 3 已完成/);
+    assert.match(summary(page, classIds[0]), /3 名启用学生 · 2 人已到班 · 2 人已检查书包/);
+    assert.match(summary(page, classIds[0]), /0 项需要注意/);
     assert.ok(attentionIds(page).includes(assignmentIds[1]) && attentionIds(page).includes(dailyIds[3]));
     assert.deepEqual(await db.select().from(studentHomework).where(notInArray(studentHomework.id, assignmentIds)).orderBy(asc(studentHomework.id)), originalHomework);
     assert.deepEqual(await db.select().from(dailyStudentRecords).where(notInArray(dailyStudentRecords.id, dailyIds)).orderBy(asc(dailyStudentRecords.id)), originalCare);

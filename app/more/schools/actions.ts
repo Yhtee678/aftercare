@@ -14,7 +14,7 @@ function refreshSchoolViews(id: string) {
 
 export async function createSchool(input: unknown): Promise<SchoolMutationResult> {
   const parsed = createSchoolSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: "Check the school details and try again.", nameError: parsed.error.issues.find((issue) => issue.path[0] === "name")?.message };
+  if (!parsed.success) return { success: false, message: "请检查学校资料后重试。", nameError: parsed.error.issues.find((issue) => issue.path[0] === "name")?.message };
   try {
     const { insertSchool } = await import("@/db/mutations/schools");
     const result = await insertSchool(parsed.data);
@@ -22,13 +22,13 @@ export async function createSchool(input: unknown): Promise<SchoolMutationResult
     return result;
   } catch {
     console.error("Add School: database creation or revalidation failed.");
-    return { success: false, message: "Unable to add the school. Please try again using this form." };
+    return { success: false, message: "暂时无法添加学校，请使用此表单重试。" };
   }
 }
 
 export async function editSchool(input: unknown): Promise<SchoolMutationResult> {
   const parsed = editSchoolSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: "Check the school details and try again.", nameError: parsed.error.issues.find((issue) => issue.path[0] === "name")?.message };
+  if (!parsed.success) return { success: false, message: "请检查学校资料后重试。", nameError: parsed.error.issues.find((issue) => issue.path[0] === "name")?.message };
   try {
     const { updateSchool } = await import("@/db/mutations/schools");
     const result = await updateSchool(parsed.data);
@@ -36,13 +36,13 @@ export async function editSchool(input: unknown): Promise<SchoolMutationResult> 
     return result;
   } catch {
     console.error("Edit School: database update or revalidation failed.");
-    return { success: false, message: "Unable to save the school. Please try again." };
+    return { success: false, message: "暂时无法保存学校，请重试。" };
   }
 }
 
 export async function deactivateSchool(input: unknown): Promise<SchoolMutationResult> {
   const parsed = deactivateSchoolSchema.safeParse(input);
-  if (!parsed.success) return { success: false, message: "Confirm deactivation for a valid school and try again." };
+  if (!parsed.success) return { success: false, message: "请确认要停用的学校后重试。" };
   try {
     const { markSchoolInactive } = await import("@/db/mutations/schools");
     const result = await markSchoolInactive(parsed.data);
@@ -50,6 +50,6 @@ export async function deactivateSchool(input: unknown): Promise<SchoolMutationRe
     return result;
   } catch {
     console.error("Deactivate School: database update or revalidation failed.");
-    return { success: false, message: "Unable to deactivate the school. Please try again." };
+    return { success: false, message: "暂时无法停用学校，请重试。" };
   }
 }
