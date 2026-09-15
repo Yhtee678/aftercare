@@ -58,10 +58,26 @@ test("optimistic patches do not mutate confirmed state; retries retain arrival a
   const absent = { ...confirmed, arrivalTime: null };
   assert.deepEqual(optimisticCare(absent, "mealCompleted", "2099-01-01T00:00:00Z"), absent);
 });
-test("daily master sheet keeps official order, counts, missing fields and Malaysia time", () => {
-  const row = { ...complete, name: "Test 陈小明", schoolTotal: 1, schoolCompleted: 1, tuitionTotal: 0, tuitionCompleted: 0, remark: "Test 备注" };
-  const cells = dailySheetCells(row, 0, "Test 学校", "1B");
-  assert.equal(cells.length, dailySheetColumns.length);
-  assert.deepEqual(cells, ["1", row.name, "Test 学校", "1B", "13:30", "✓", "✓", "✓", "1/1", "—", "", "1/1 | —", "✓", "2/2", "Test 备注"]);
-  assert.equal(dailySheetCells({ ...row, corrections: 1 }, 1, "Test 学校", "1B")[12], "");
+test("print lists all homework and groups dictation by source, never status", () => {
+  const row = { ...complete, remark: "Test 备注", name: "Test 陈小明", homework: [
+    { subject: "数学", taskType: "作业", status: "COMPLETED" },
+    { subject: "华文", taskType: "习字", status: "PENDING" },
+    { subject: "科学", taskType: "作业", status: "COMPLETED" },
+  ], dictation: [
+    { source: "SCHOOL" as const, type: "DICTATION" as const, status: "COMPLETED" as const },
+    { source: "SCHOOL" as const, type: "EJAAN" as const, status: "NEEDS_PRACTICE" as const },
+    { source: "TUITION" as const, type: "SPELLING" as const, status: "PENDING" as const },
+  ] };
+  assert.deepEqual(dailySheetColumns, ["No.", "姓名", "学校", "班级", "到班", "吃饭", "书包", "冲凉", "听写", "补做功课", "需订正X", "听写（学）", "听写（补）", "all done", "功课", "备注"]);
+  assert.deepEqual(dailySheetCells(row, 11, "Test 学校", "1B"), ["12", row.name, "Test 学校", "1B", "13:30", "✓", "✓", "✓", "", "—", "", "听写、Ejaan", "Spelling", "✓", "数学作业、华文习字、科学作业", "Test 备注"]);
+  const empty = dailySheetCells({ ...row, homework: [], dictation: [] }, 0, "Test 学校", "1B");
+  assert.equal(empty[8], "");
+  for (const column of [11, 12, 14]) assert.equal(empty[column], "-");
+  const completedCells = dailySheetCells({ ...row, dictation: row.dictation.map(item=>({...item,status:"COMPLETED" as const})) }, 0, "Test 学校", "1B");
+  const expected = dailySheetCells(row, 0, "Test 学校", "1B");
+  expected[8] = "✓";
+  assert.deepEqual(completedCells, expected);
+  for (const status of ["PENDING", "NEEDS_PRACTICE"] as const) {
+    assert.equal(dailySheetCells({ ...row, dictation: [{ ...row.dictation[0], status }] }, 0, "Test 学校", "1B")[8], "");
+  }
 });

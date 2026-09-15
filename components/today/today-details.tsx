@@ -1,3 +1,4 @@
+import { homeworkTitle } from "@/lib/homework-title";
 import Link from "next/link";
 import { formatGrade } from "@/lib/ui-labels";
 import { formatCareTime } from "@/lib/care-date";
@@ -19,7 +20,7 @@ export function TodayDetails({ data }: { data: TodayData }) {
             <h3 className="break-words font-semibold">{item.studentName}</h3>
             <p className="break-words text-sm text-slate-600">{item.schoolName} · {item.className}</p>
             <p className="font-medium text-amber-900">功课需要订正</p>
-            <p className="whitespace-pre-wrap break-words text-sm">{item.subject} — {item.description}{item.pageFrom !== null && ` · 页数 ${item.pageFrom}${item.pageTo !== null && item.pageTo !== item.pageFrom ? `–${item.pageTo}` : ""}`}</p>
+            <p className="whitespace-pre-wrap break-words text-sm">{homeworkTitle(item.subject, item.taskType)} — {item.description}{item.pageFrom !== null && ` · 页数 ${item.pageFrom}${item.pageTo !== null && item.pageTo !== item.pageFrom ? `–${item.pageTo}` : ""}`}</p>
             <p className="text-xs text-slate-600">功课日期： {item.taskDate}</p>
             <Link prefetch={false} href={`/homework/${item.taskId}`} className="inline-flex min-h-12 items-center text-sm font-medium text-blue-700 underline">查看功课</Link>
           </li>)}

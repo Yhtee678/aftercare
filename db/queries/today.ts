@@ -6,7 +6,7 @@ import { getCareToday } from "./care";
 import { getDueDictations } from "./dictation";
 
 type Context = { id: string; studentName: string; classId: string; className: string; schoolName: string; grade: number; academicYear: number };
-type Correction = Context & { taskId: string; subject: string; description: string; pageFrom: number | null; pageTo: number | null; taskDate: string };
+type Correction = Context & { taskId: string; taskType: string | null; subject: string; description: string; pageFrom: number | null; pageTo: number | null; taskDate: string };
 type Bag = Context & { arrivalTime: string };
 type ClassSummary = { id: string; className: string; schoolName: string; grade: number; academicYear: number;
   activeStudents: number; arrived: number; bagsChecked: number; homeworkCompleted: number; homeworkTotal: number };
@@ -18,7 +18,7 @@ export async function getTodayOverview() {
     db.execute<Correction>(sql`
       select sh.id, s.name as "studentName", c.id as "classId", c.class_name as "className",
         sc.name as "schoolName", c.grade, c.academic_year as "academicYear",
-        h.id as "taskId", h.subject, h.description, h.page_from as "pageFrom", h.page_to as "pageTo", h.task_date::text as "taskDate"
+        h.id as "taskId", h.task_type as "taskType", h.subject, h.description, h.page_from as "pageFrom", h.page_to as "pageTo", h.task_date::text as "taskDate"
       from student_homework sh join homework_tasks h on h.id = sh.homework_task_id
       join students s on s.id = sh.student_id
       join school_classes c on c.id = coalesce(h.school_class_id, s.school_class_id)

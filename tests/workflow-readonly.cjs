@@ -1,4 +1,5 @@
 // Run with the production server on port 3100. GET requests only; never submits mutations.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- Standalone CommonJS script run directly by Node.
 const assert = require('node:assert/strict');
 const get = async path => { const response = await fetch('http://localhost:3100' + path); assert.equal(response.status, 200, path); const html = await response.text(); assert.ok(!html.includes('暂时无法加载'), path + ' data read'); return html.replace(/<!--[\s\S]*?-->/g, ''); };
 (async () => {
@@ -16,7 +17,10 @@ const get = async path => { const response = await fetch('http://localhost:3100'
   assert.ok(id, 'An existing active class is needed for read-only smoke testing');
   assert.ok((await get('/care/classes/' + id)).includes('打印今日表'));
   const sheet = await get('/care/classes/' + id + '/print');
-  assert.ok(sheet.includes('需订正X') && sheet.includes('all done'));
+  assert.ok(sheet.includes('听写（学）') && sheet.includes('听写（补）'));
+  const studentView = await get('/homework/classes/' + id);
+  assert.ok(studentView.includes('homework-student-search') && studentView.includes('按学生'));
+  assert.ok((await get('/homework/classes/' + id + '?view=tasks')).includes('按功课'));
   await get('/today/classes/' + id);
   console.log('Read-only production smoke passed: Today/grades/class, student search, creation options, Care and printable sheet. No writes invoked.');
 })().catch(() => { console.error('Read-only production smoke failed; no database details printed.'); process.exitCode = 1; });

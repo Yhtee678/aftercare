@@ -13,9 +13,9 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
   return (
     <nav aria-label={mobile ? "手机导航" : "主导航"}>
       <ul className={mobile ? "grid grid-cols-5 gap-1" : "space-y-1"}>
-        {navigationItems.filter((item) => mobile ? ["/today", "/students", "/homework", "/care"].includes(item.href) : !["/answers", "/reports"].includes(item.href)).map((item) => {
+        {navigationItems.filter((item) => mobile ? ["/today", "/dictation", "/homework", "/care"].includes(item.href) : !["/answers", "/reports", "/students"].includes(item.href)).map((item) => {
           const current = matches(item.href);
-          const active = current || (item.href === "/more" && ["/answers", "/reports"].some(matches));
+          const active = current || (item.href === "/more" && ["/answers", "/reports", "/students"].some(matches));
           const Icon = item.icon;
           return (
             <li key={item.href} className={cn("min-w-0", mobile && item.href === "/homework" && "col-start-4")}>

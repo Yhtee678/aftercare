@@ -327,7 +327,7 @@ routes are invalidated; current Care receives the row without a whole-roster res
 This uses Next 16's documented Server Action invalidation of visited router pages.
 All operational reads remain request-time, with no persistent data cache.
 
-Class cards and the print sheet share `getDailyClassStudents`. Relevant homework is
+Daily Care and Today class cards share `getDailyClassStudents`. Relevant homework is
 today's assignments plus any unresolved correction; dictation is today/tomorrow plus
 overdue unresolved work. Green/all done means arrival + bag check + final check and
 all these assignments completed. This is a display summary, not release permission
@@ -335,20 +335,9 @@ or a new prerequisite for the standalone Final Check action. Red indicates corre
 near-due unresolved dictation or an unchecked bag after arrival; otherwise gray before
 arrival and amber while work remains. No completion flag is stored.
 
-`/care/classes/[id]/print` uses the current active roster and native A4-landscape
-printing/Save as PDF. Column mapping, in official order:
+`/care/classes/[id]/print` uses the current active roster and native A4-landscape printing/Save as PDF. Original columns remain: No., 姓名, 学校, 班级, 到班, 吃饭, 书包, 冲凉, 听写, 补做功课, 需订正X, all done, 功课, 备注. The original combined 听写（学 | 补）column is split into 听写（学）and 听写（补）in the same position. Dictation/homework columns show task names instead of ratios; other cells, completion rules and historical-context notes retain their original meaning. Homework lists every assignment with today’s task_date, including COMPLETED, using subject + task_type. Dictation lists tasks assigned today or scheduled today, regardless of status; SCHOOL goes to 学 and TUITION goes to 补. Empty lists show "-". These labels indicate source, never learning/make-up/completion status.
 
-| Columns | Source |
-| --- | --- |
-| No., 姓名, 学校, 班级 | Display sequence and current roster; differing first-record context is noted |
-| 到班, 吃饭, 书包, 冲凉 | Today's daily record; arrival shown in Malaysia time |
-| 听写 | Relevant dictation completed/total |
-| 补做功课 | —; no persisted make-up-work classification exists |
-| 需订正X | Relevant homework CORRECTION_REQUIRED count |
-| 听写（学 \| 补） | Relevant dictation completed/total separately for SCHOOL and TUITION |
-| all done | The derived completion rule above |
-| 功课 | Relevant homework completed/total |
-| 备注 | Daily record remark plus a differing historical class context, if any |
+Homework class pages default to student cards (stable name/ID order and client search), containing today’s assignments plus older unfinished work. Existing per-assignment Server Actions handle checking; the secondary ?view=tasks retains all-date history. No bulk completion action or schema changes. Student management is under More; Dictation replaces Students in primary navigation.
 
 No photo is uploaded or persisted. A single local File/object URL is used for preview
 and user-initiated system sharing, revoked on replacement, closing, pagehide/unmount.

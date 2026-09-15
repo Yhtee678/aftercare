@@ -27,7 +27,6 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     <h1 className="text-2xl font-semibold">功课详情</h1>
     {(await searchParams).created === "1" && <p role="status" className="rounded-lg bg-green-50 p-4 text-green-800">功课已保存并分配。</p>}
     <HomeworkSummary task={data.task} />
-    {data.task.taskType && <p className="break-words text-sm text-slate-600">{data.task.taskType}</p>}
     <section className="space-y-3" aria-labelledby="assigned-heading">
       <h2 id="assigned-heading" className="text-lg font-semibold">已分配学生</h2>
       <p className="text-sm text-slate-600">{completed} / {data.assignments.length} 已完成 · {data.assignments.length - completed} 未完成。老师确认全部完成后，方可标记完成。</p>
