@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createDictationSchema, changeDictationStatusSchema, type DictationResult } from "@/lib/validation/dictation";
+import type { TaskAssignmentResult } from "@/lib/validation/task-assignment";
 
 function refreshDictation(id: string) {
   revalidatePath("/dictation", "layout");
@@ -36,4 +37,22 @@ export async function changeDictationStatus(input: unknown): Promise<DictationRe
     console.error("Dictation check: update or revalidation failed.");
     return { success: false, message: "暂时无法确认更新结果，请刷新查看状态后重试。" };
   }
+}
+
+export async function addDictationStudents(input: unknown): Promise<TaskAssignmentResult> {
+  try {
+    const { addStudentsToTask } = await import("@/db/mutations/task-assignment");
+    const result = await addStudentsToTask("dictation", input);
+    if (result.success) refreshDictation(result.id);
+    return result;
+  } catch { return { success: false, message: "无法添加学生，请重试。" }; }
+}
+
+export async function removeDictationStudent(input: unknown): Promise<TaskAssignmentResult> {
+  try {
+    const { removeStudentFromTask } = await import("@/db/mutations/task-assignment");
+    const result = await removeStudentFromTask("dictation", input);
+    if (result.success) refreshDictation(result.id);
+    return result;
+  } catch { return { success: false, message: "无法移除学生，请重试。" }; }
 }

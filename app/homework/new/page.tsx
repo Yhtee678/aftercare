@@ -9,9 +9,11 @@ export const metadata: Metadata = { title: "添加功课" };
 export default async function Page() {
   await connection();
   let classes;
+  let students;
   try {
     const { getActiveSchoolClasses } = await import("@/db/queries/school-classes");
-    classes = await getActiveSchoolClasses();
+    const { getActiveAssignmentStudents } = await import("@/db/queries/assignment-students");
+    [classes, students] = await Promise.all([getActiveSchoolClasses(), getActiveAssignmentStudents()]);
   } catch {
     console.error("Add Homework: class query failed.");
     return <HomeworkLoadError href="/homework/new" />;
@@ -20,7 +22,7 @@ export default async function Page() {
   return <div className="max-w-2xl space-y-6">
     <Link href="/homework" className="inline-flex min-h-12 items-center text-blue-700 underline">返回功课</Link>
     <h1 className="text-2xl font-semibold">添加功课</h1>
-    {classes.length ? <HomeworkForm classes={classes} submissionId={randomUUID()} today={today} />
+    {classes.length ? <HomeworkForm classes={classes} students={students} submissionId={randomUUID()} today={today} />
       : <p>暂无可用班级，请先在“更多”中添加并启用学校和班级。</p>}
   </div>;
 }

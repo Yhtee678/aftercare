@@ -28,14 +28,15 @@ export async function insertClassDictation(raw: unknown): Promise<DictationResul
     if (!schoolClass) return { success: false, message: "此班级或学校已停用或不可用，请选择已启用的班级。" };
     const roster = await tx.select({ id: students.id }).from(students)
       .where(and(eq(students.schoolClassId, schoolClass.id), eq(students.status, "ACTIVE"))).for("share");
-    if (!roster.length) return { success: false, message: "此班级暂无启用的学生，请先添加学生再分配听写。" };
+    if (new Set(input.studentIds).size !== input.studentIds.length || input.studentIds.some((id) => !roster.some((student) => student.id === id)))
+      return { success: false, message: "所选学生不属于此班级或已停用。" };
     await tx.insert(dictationTasks).values({
       id: input.submissionId, scope: "CLASS", schoolClassId: input.schoolClassId,
       contentFormat: input.contentFormat, type: input.type, description: input.description, source: input.source,
       assignedDate: input.assignedDate, scheduledDate: input.scheduledDate,
     });
-    await tx.insert(studentDictation).values(roster.map((student) => ({
-      studentId: student.id, dictationTaskId: input.submissionId, status: "PENDING" as const,
+    await tx.insert(studentDictation).values(input.studentIds.map((studentId) => ({
+      studentId, dictationTaskId: input.submissionId, status: "PENDING" as const,
     })));
     return { success: true, id: input.submissionId };
   });

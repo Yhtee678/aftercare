@@ -7,6 +7,7 @@ const optionalPage = z.union([
 ]).pipe(z.number().int().min(1, "页数须从1开始。").max(2147483647).nullable());
 export const homeworkFormSchema = z.object({
   schoolClassId: z.uuid("请选择已启用的班级。"),
+  studentIds: z.array(z.uuid()).min(1, "请选择至少一位学生。").max(500),
   subject: z.string().trim().min(1, "请填写科目。").max(200),
   description: z.string().trim().min(1, "请填写功课内容。").max(5000),
   taskType: z.string().trim().max(200).transform((value) => value || null),

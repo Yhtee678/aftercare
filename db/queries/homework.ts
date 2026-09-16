@@ -37,7 +37,7 @@ export async function getHomeworkTask(id: string) {
     .leftJoin(schools, eq(schoolClasses.schoolId, schools.id))
     .where(eq(homeworkTasks.id, id));
   if (!task) return undefined;
-  const assignments = await db.select({ id: studentHomework.id, studentName: students.name, status: studentHomework.status })
+  const assignments = await db.select({ id: studentHomework.id, studentId: students.id, studentName: students.name, status: studentHomework.status })
     .from(studentHomework).innerJoin(students, eq(studentHomework.studentId, students.id))
     .where(eq(studentHomework.homeworkTaskId, id))
     .orderBy(asc(sql`case ${studentHomework.status} when 'CORRECTION_REQUIRED' then 0 when 'PENDING' then 1 else 2 end`), asc(students.name), asc(studentHomework.id));

@@ -7,6 +7,7 @@ export const dictationSourceLabels = { SCHOOL: "学校", TUITION: "补习" };
 export const dictationIdSchema = z.uuid("听写信息无效。");
 export const dictationFormSchema = z.object({
   schoolClassId: z.uuid("请选择已启用的班级。"),
+  studentIds: z.array(z.uuid()).min(1, "请选择至少一位学生。").max(500),
   source: z.enum(dictationSources),
   type: z.enum(dictationTypes),
   contentFormat: z.enum(["NUMBERED", "PLAIN"]).default("PLAIN"),

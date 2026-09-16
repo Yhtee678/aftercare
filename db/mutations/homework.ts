@@ -29,14 +29,15 @@ export async function insertClassHomework(raw: unknown): Promise<HomeworkResult>
     if (!schoolClass) return { success: false, message: "此班级或学校已停用或不可用，请选择已启用的班级。" };
     const roster = await tx.select({ id: students.id }).from(students)
       .where(and(eq(students.schoolClassId, schoolClass.id), eq(students.status, "ACTIVE"))).for("share");
-    if (!roster.length) return { success: false, message: "此班级暂无启用的学生，请先添加学生再分配功课。" };
+    if (new Set(input.studentIds).size !== input.studentIds.length || input.studentIds.some((id) => !roster.some((student) => student.id === id)))
+      return { success: false, message: "所选学生不属于此班级或已停用。" };
     await tx.insert(homeworkTasks).values({
       id: input.submissionId, scope: "CLASS", schoolClassId: input.schoolClassId,
       subject: input.subject, description: input.description, taskType: input.taskType,
       pageFrom: input.pageFrom, pageTo: input.pageTo, taskDate: input.taskDate,
     });
-    await tx.insert(studentHomework).values(roster.map((student) => ({
-      studentId: student.id, homeworkTaskId: input.submissionId, status: "PENDING" as const,
+    await tx.insert(studentHomework).values(input.studentIds.map((studentId) => ({
+      studentId, homeworkTaskId: input.submissionId, status: "PENDING" as const,
     })));
     return { success: true, id: input.submissionId };
   });

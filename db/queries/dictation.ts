@@ -57,7 +57,7 @@ export async function getDictationTask(id: string) {
     .leftJoin(schools, eq(schoolClasses.schoolId, schools.id))
     .where(eq(dictationTasks.id, id));
   if (!task) return undefined;
-  const assignments = await db.select({ id: studentDictation.id, studentName: students.name, status: studentDictation.status })
+  const assignments = await db.select({ id: studentDictation.id, studentId: students.id, studentName: students.name, status: studentDictation.status })
     .from(studentDictation).innerJoin(students, eq(studentDictation.studentId, students.id))
     .where(eq(studentDictation.dictationTaskId, id))
     .orderBy(asc(sql`case ${studentDictation.status} when 'NEEDS_PRACTICE' then 0 when 'PENDING' then 1 else 2 end`), asc(students.name), asc(studentDictation.id));

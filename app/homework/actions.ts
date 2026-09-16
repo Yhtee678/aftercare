@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createHomeworkSchema, changeHomeworkStatusSchema, type HomeworkResult } from "@/lib/validation/homework";
+import type { TaskAssignmentResult } from "@/lib/validation/task-assignment";
 
 function refreshHomework(id: string) {
   revalidatePath("/homework");
@@ -34,4 +35,22 @@ export async function changeHomeworkStatus(input: unknown): Promise<HomeworkResu
     console.error("Homework check: update or revalidation failed.");
     return { success: false, message: "暂时无法确认更新结果，请刷新查看状态后重试。" };
   }
+}
+
+export async function addHomeworkStudents(input: unknown): Promise<TaskAssignmentResult> {
+  try {
+    const { addStudentsToTask } = await import("@/db/mutations/task-assignment");
+    const result = await addStudentsToTask("homework", input);
+    if (result.success) revalidatePath("/homework", "layout");
+    return result;
+  } catch { return { success: false, message: "无法添加学生，请重试。" }; }
+}
+
+export async function removeHomeworkStudent(input: unknown): Promise<TaskAssignmentResult> {
+  try {
+    const { removeStudentFromTask } = await import("@/db/mutations/task-assignment");
+    const result = await removeStudentFromTask("homework", input);
+    if (result.success) revalidatePath("/homework", "layout");
+    return result;
+  } catch { return { success: false, message: "无法移除学生，请重试。" }; }
 }

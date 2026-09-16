@@ -10,17 +10,19 @@ import { useForm, useWatch } from "react-hook-form";
 import { createHomework } from "@/app/homework/actions";
 import { Button } from "@/components/ui/button";
 import type { SchoolClassOption } from "@/db/queries/school-classes";
+import { TaskStudentSelector } from "@/components/students/task-student-selector";
+import type { AssignmentStudent } from "@/lib/assignment-selection";
 import { homeworkFormSchema, type HomeworkFormValues } from "@/lib/validation/homework";
 
 type FormValues = HomeworkFormValues & { subjectChoice: string; customSubject: string; typeChoice: string; customType: string };
 const inputClass = "mt-2 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-blue-700 aria-invalid:border-red-600";
-export function HomeworkForm({ classes, submissionId, today }: { classes: SchoolClassOption[]; submissionId: string; today: string }) {
+export function HomeworkForm({ classes, students, submissionId, today }: { classes: SchoolClassOption[]; students: AssignmentStudent[]; submissionId: string; today: string }) {
   const router = useRouter();
   const saving = useRef(false);
   const formId = useRef(submissionId);
   const [saved, setSaved] = useState(false);
-  const { register, handleSubmit, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
-    defaultValues: { subjectChoice: "", customSubject: "", typeChoice: "", customType: "", schoolClassId: "", subject: "", description: "", taskType: "", pageFrom: "", pageTo: "", taskDate: today },
+  const { register, handleSubmit, setValue, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    defaultValues: { subjectChoice: "", customSubject: "", typeChoice: "", customType: "", schoolClassId: "", studentIds: [], subject: "", description: "", taskType: "", pageFrom: "", pageTo: "", taskDate: today },
   });
   const selected = useWatch({ control });
   const submit = async (raw: FormValues) => {
@@ -53,14 +55,8 @@ export function HomeworkForm({ classes, submissionId, today }: { classes: School
     {errors.root && <p role="alert" className="text-red-700">{errors.root.message}</p>}
     {saved && <p role="status" className="text-green-800">功课已保存并分配。</p>}
     <fieldset disabled={isSubmitting || saved} className="space-y-5 disabled:opacity-70">
-      <div><label htmlFor="schoolClassId" className="text-sm font-medium">学校／班级 *</label>
-        <select id="schoolClassId" {...register("schoolClassId")} required className={inputClass} aria-invalid={!!errors.schoolClassId} aria-describedby="class-help class-error">
-          <option value="">请选择已启用的班级</option>
-          {classes.map((item) => <option key={item.id} value={item.id}>{item.schoolName} · {item.className}</option>)}
-        </select>
-        <p id="class-help" className="mt-1 text-sm text-slate-600">保存后将分配给此班级中启用的学生。</p>
-        {errors.schoolClassId && <p id="class-error" role="alert" className="text-sm text-red-700">{errors.schoolClassId.message}</p>}
-      </div>
+      <TaskStudentSelector classes={classes} students={students} classId={selected.schoolClassId ?? ""} onClassChange={(id) => setValue("schoolClassId", id)} selected={selected.studentIds ?? []} onSelectedChange={(ids) => setValue("studentIds", ids)} />
+      {(errors.schoolClassId || errors.studentIds) && <p role="alert" className="text-red-700">{errors.schoolClassId?.message || errors.studentIds?.message}</p>}
       {([{ choice: "subjectChoice", custom: "customSubject", label: "科目", options: homeworkSubjects, error: errors.subject }, { choice: "typeChoice", custom: "customType", label: "功课类型（选填）", options: homeworkMaterials, error: errors.taskType }] as const).map((field) => <div key={field.choice}>
         <label htmlFor={field.choice}>{field.label}</label><select id={field.choice} {...register(field.choice)} className={inputClass} aria-invalid={!!field.error}><option value="">请选择</option>{[...field.options, "其他"].map((option) => <option key={option}>{option}</option>)}</select>
         {selected[field.choice] === "其他" && <><label htmlFor={field.custom} className="mt-2 block text-sm">其他{field.label}</label><input id={field.custom} {...register(field.custom)} maxLength={200} className={inputClass} /></>}

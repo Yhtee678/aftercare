@@ -9,18 +9,20 @@ import { useForm, useWatch } from "react-hook-form";
 import { createDictation } from "@/app/dictation/actions";
 import { Button } from "@/components/ui/button";
 import type { SchoolClassOption } from "@/db/queries/school-classes";
+import { TaskStudentSelector } from "@/components/students/task-student-selector";
+import type { AssignmentStudent } from "@/lib/assignment-selection";
 import { dictationFormSchema, dictationTypes, dictationTypeLabels, dictationSources, dictationSourceLabels, type DictationFormValues } from "@/lib/validation/dictation";
 
 const inputClass = "mt-2 min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-blue-700 aria-invalid:border-red-600";
-export function DictationForm({ classes, submissionId, today, classId }: { classes: SchoolClassOption[]; submissionId: string; today: string; classId: string }) {
+export function DictationForm({ classes, students, submissionId, today, classId }: { classes: SchoolClassOption[]; students: AssignmentStudent[]; submissionId: string; today: string; classId: string }) {
   const router = useRouter();
   const formId = useRef(submissionId);
   const busy = useRef(false);
   const [saved, setSaved] = useState(false);
-  const { register, handleSubmit, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<DictationFormValues>({ defaultValues: {
-    contentFormat: "NUMBERED", schoolClassId: classId, source: "SCHOOL", type: "DICTATION", description: "", assignedDate: today, scheduledDate: today,
+  const { register, handleSubmit, setValue, setError, clearErrors, control, formState: { errors, isSubmitting } } = useForm<DictationFormValues>({ defaultValues: {
+    contentFormat: "NUMBERED", schoolClassId: classId, studentIds: [], source: "SCHOOL", type: "DICTATION", description: "", assignedDate: today, scheduledDate: today,
   } });
-  const [description, contentFormat] = useWatch({ control, name: ["description", "contentFormat"] });
+  const [description, contentFormat, selectedClass, studentIds] = useWatch({ control, name: ["description", "contentFormat", "schoolClassId", "studentIds"] });
   const submit = async (values: DictationFormValues) => {
     clearErrors();
     const parsed = dictationFormSchema.safeParse(values);
@@ -36,7 +38,6 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
     } catch { setError("root", { message: "暂时无法确认保存结果，请使用此表单重试。" }); }
   };
   const selects = [
-    { name: "schoolClassId", label: "学校／班级", options: [{ value: "", label: "请选择已启用的班级" }, ...classes.map((item) => ({ value: item.id, label: `${item.schoolName} · ${item.className}` }))] },
     { name: "source", label: "来源", options: dictationSources.map((value) => ({ value, label: dictationSourceLabels[value] })) },
     { name: "type", label: "类型", options: dictationTypes.map((value) => ({ value, label: dictationTypeLabels[value] })) },
   ] as const;
@@ -50,6 +51,8 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
     {errors.root && <p role="alert" className="text-red-700">{errors.root.message}</p>}
     {saved && <p role="status" className="text-green-800">听写已保存并分配。</p>}
     <fieldset disabled={isSubmitting || saved} className="space-y-5 disabled:opacity-70">
+      <TaskStudentSelector classes={classes} students={students} classId={selectedClass} onClassChange={(id) => setValue("schoolClassId", id)} selected={studentIds} onSelectedChange={(ids) => setValue("studentIds", ids)} />
+      {(errors.schoolClassId || errors.studentIds) && <p role="alert" className="text-red-700">{errors.schoolClassId?.message || errors.studentIds?.message}</p>}
       {selects.map((field) => <div key={field.name}><label htmlFor={field.name} className="text-sm font-medium">{field.label} *</label>
         <select id={field.name} {...register(field.name)} required className={inputClass} aria-invalid={!!errors[field.name]} aria-describedby={`${field.name}-error`}>
           {field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -65,7 +68,6 @@ export function DictationForm({ classes, submissionId, today, classId }: { class
         <input id={name} {...register(name)} type="date" required className={inputClass} aria-invalid={!!errors[name]} aria-describedby={`${name}-error`} />
         {errors[name] && <p id={`${name}-error`} role="alert" className="text-sm text-red-700">{errors[name]?.message}</p>}
       </div>)}
-      <p className="text-sm text-slate-600">保存后将分配给此班级中启用的学生。</p>
       <Button type="submit" className="min-h-12 w-full bg-blue-700 text-white hover:bg-blue-800 sm:w-auto">{saved ? "已保存" : isSubmitting ? "正在分配…" : "保存并分配听写"}</Button>
     </fieldset>
     <Link href={classId ? `/dictation/classes/${classId}` : "/dictation"} className="inline-flex min-h-12 items-center text-sm text-slate-600 underline">取消</Link>
